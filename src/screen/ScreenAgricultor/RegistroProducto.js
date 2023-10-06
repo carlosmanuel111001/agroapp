@@ -12,8 +12,11 @@ import {
 import * as ImagePicker from 'react-native-image-picker';
 import {Picker} from '@react-native-picker/picker';
 import firestore from '@react-native-firebase/firestore';
+import {useNavigation} from '@react-navigation/native'; // Asegúrate de tener esta importación
 
 const RegistroProducto = () => {
+  const navigation = useNavigation(); // Obtiene el objeto de navegación
+
   const [tipoProducto, setTipoProducto] = useState('');
   const [codigoProducto, setCodigoProducto] = useState('');
   const [imageData, setImageData] = useState(null);
@@ -48,7 +51,9 @@ const RegistroProducto = () => {
       Alert.alert('Error', 'Por favor, selecciona un tipo de producto.');
       return;
     }
+
     try {
+      const nombreProductoLowerCase = nombreProducto.toLowerCase(); // Convertir el nombre del producto a minúsculas
       await firestore().collection('Productos').add({
         tipoProducto: tipoProducto,
         codigoProducto: codigoProducto,
@@ -58,12 +63,20 @@ const RegistroProducto = () => {
         cantidadProducto: cantidadProducto,
         descuentoProducto: descuentoProducto,
         ubicacion: ubicacion,
+        nombreProductoLowerCase: nombreProductoLowerCase, // Almacenar el nombre del producto en minúsculas para facilitar la búsqueda
       });
+
       Alert.alert('Información', 'Producto registrado con éxito', [
         {
           text: 'OK',
         },
       ]);
+
+      // Resetear la pila de navegación para ir a VistaPrincipal después de registrar el producto
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'vistaPrincipal'}],
+      });
     } catch (error) {
       console.log(error);
     } finally {

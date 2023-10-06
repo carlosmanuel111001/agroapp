@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   TouchableOpacity,
@@ -11,6 +11,7 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
+import firestore from '@react-native-firebase/firestore';
 import {useNavigation} from '@react-navigation/native';
 
 const VistaPrincipal = () => {
@@ -33,14 +34,28 @@ const VistaPrincipal = () => {
     navigation.navigate('RegistroProducto');
   };
 
-  const productos = [
-    {id: '1', nombre: 'Producto 1'},
-    {id: '2', nombre: 'Producto 2'},
-    // ... otros productos
-  ];
+  const [productos, setProductos] = useState([]);
+
+  useEffect(() => {
+    const unsubscribe = firestore()
+      .collection('Productos')
+      .onSnapshot(querySnapshot => {
+        const productosData = [];
+        querySnapshot.forEach(doc => {
+          productosData.push({
+            id: doc.id,
+            nombre: doc.data().nombreProducto, // Asegúrate de tener el campo correcto de nombre en tu base de datos
+          });
+        });
+        setProductos(productosData);
+      });
+
+    // Cuando el componente se desmonta, deja de escuchar los cambios
+    return () => unsubscribe();
+  }, []); // El array vacío como segundo argumento significa que este efecto se ejecutará solo una vez, similar a componentDidMount
+
   const handleEditPress = productoId => {
     navigation.navigate('EditarProducto', {id: productoId});
-    // Puedes enviar el id del producto como un parámetro si lo necesitas en la siguiente pantalla.
   };
   const handleLogOut = () => {
     Alert.alert(
@@ -67,7 +82,38 @@ const VistaPrincipal = () => {
       {cancelable: false},
     );
   };
+  const handleEliminar = id => {
+    // Muestra un cuadro de diálogo de confirmación antes de eliminar el producto
+    Alert.alert(
+      'Confirmar Eliminación',
+      '¿Estás seguro de que deseas eliminar este producto?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel', // El botón de cancelar aparecerá a la izquierda
+        },
+        {
+          text: 'Eliminar',
+          onPress: async () => {
+            try {
+              // Elimina el producto de Firestore utilizando el método delete
+              await firestore().collection('Productos').doc(id).delete();
 
+              Alert.alert('Información', 'Producto eliminado con éxito');
+            } catch (error) {
+              console.error('Error al eliminar el producto: ', error);
+              Alert.alert(
+                'Error',
+                'No se pudo eliminar el producto. Por favor, inténtalo de nuevo.',
+              );
+            }
+          },
+          style: 'destructive', // El botón de eliminar aparecerá en rojo
+        },
+      ],
+      {cancelable: false}, // El usuario debe tomar una decisión antes de cerrar el cuadro de diálogo
+    );
+  };
   return (
     <>
       <Modal
@@ -164,7 +210,7 @@ const VistaPrincipal = () => {
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.deleteButton}
-                      onPress={() => {}}>
+                      onPress={() => handleEliminar(item.id)}>
                       <Text style={styles.deleteButtonText}>Eliminar</Text>
                     </TouchableOpacity>
                   </View>

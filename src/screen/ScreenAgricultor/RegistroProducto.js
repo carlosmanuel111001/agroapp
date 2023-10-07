@@ -17,6 +17,9 @@ import {useNavigation} from '@react-navigation/native'; // Asegúrate de tener e
 import storage from '@react-native-firebase/storage';
 import RNFS from 'react-native-fs';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import Geolocation from '@react-native-community/geolocation';
+import MapView, {Marker} from 'react-native-maps';
+import {PERMISSIONS, request, RESULTS} from 'react-native-permissions';
 
 const RegistroProducto = () => {
   const navigation = useNavigation(); // Obtiene el objeto de navegación
@@ -30,7 +33,8 @@ const RegistroProducto = () => {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [descuentoProducto, setDescuentoProducto] = useState('');
-  const [ubicacion, setUbicacion] = useState('');
+  const [ubicacion, setUbicacion] = useState(null);
+  const [region, setRegion] = useState(null);
 
   const options = {
     mediaType: 'photo',
@@ -125,6 +129,63 @@ const RegistroProducto = () => {
       setUbicacion('');
     }
   }
+  //funcion para obtener los permisos para la ubicacion
+  const requestLocationPermission = async () => {
+    try {
+      const granted = await request(
+        Platform.OS === 'ios'
+          ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
+          : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+      );
+
+      if (granted !== RESULTS.GRANTED) {
+        Alert.alert(
+          'Permiso denegado',
+          'No podemos obtener tu ubicación sin tu permiso.',
+        );
+      }
+
+      return granted; // Retorna el resultado del permiso
+    } catch (err) {
+      console.warn(err);
+    }
+  };
+
+  //Funcion para la ubicacion
+  const obtenerUbicacionActual = async () => {
+    const permission = await requestLocationPermission();
+
+    if (permission !== RESULTS.GRANTED) {
+      Alert.alert(
+        'Permiso denegado',
+        'No puedes seleccionar una ubicación sin dar permiso.',
+      );
+      return;
+    }
+
+    Geolocation.getCurrentPosition(
+      position => {
+        const {latitude, longitude} = position.coords;
+        setUbicacion({latitude, longitude});
+        setRegion({
+          latitude,
+          longitude,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        });
+      },
+      error => {
+        console.error(error);
+        if (error.code === 3) {
+          Alert.alert(
+            'Error',
+            'La solicitud de ubicación ha excedido el tiempo de espera. Por favor, inténtalo de nuevo.',
+          );
+        }
+      },
+      {enableHighAccuracy: true, timeout: 60000, maximumAge: 10000},
+    );
+  };
 
   return (
     <ScrollView>
@@ -205,12 +266,22 @@ const RegistroProducto = () => {
         value={descuentoProducto}
         onChangeText={text => setDescuentoProducto(text)}
       />
-      <Text style={styles.label}>Ubicacion:</Text>
-      <TextInput
-        style={styles.input}
-        value={ubicacion}
-        onChangeText={text => setUbicacion(text)}
-      />
+      <TouchableOpacity onPress={obtenerUbicacionActual} style={styles.input}>
+        <Text>
+          {ubicacion
+            ? `${ubicacion.latitude}, ${ubicacion.longitude}`
+            : 'Selecciona una ubicación'}
+        </Text>
+      </TouchableOpacity>
+
+      {region && (
+        <MapView
+          style={{height: 200, width: '100%', marginVertical: 10}}
+          initialRegion={region}
+          onPress={e => setUbicacion(e.nativeEvent.coordinate)}>
+          {ubicacion && <Marker coordinate={ubicacion} />}
+        </MapView>
+      )}
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
@@ -218,7 +289,9 @@ const RegistroProducto = () => {
           onPress={subirProducto}>
           <Text style={styles.registrarText}>Registrar</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.salirButton}>
+        <TouchableOpacity
+          style={styles.salirButton}
+          onPress={() => navigation.navigate('vistaPrincipal')}>
           <Text style={styles.salirText}>Salir</Text>
         </TouchableOpacity>
       </View>

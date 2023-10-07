@@ -4,7 +4,6 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  Button,
   Text,
   FlatList,
   Modal,
@@ -233,7 +232,7 @@ const VistaPrincipal = () => {
             <TouchableOpacity
               onPress={handleRegister}
               style={styles.customButton}>
-              <Text style={styles.buttonText}>Registrar Nuevo Producto</Text>
+              <Text style={styles.buttonText}>Publicar Nuevo Producto</Text>
             </TouchableOpacity>
           </View>
         </View>

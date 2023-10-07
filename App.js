@@ -2,25 +2,20 @@ import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import PantallaRol from './src/screen/ScreenCompartidas/PantallaRol';
-import vistaPrincipal from './src/screen/ScreenAgricultor/vistaPrincipal';
-import RegistroProducto from './src/screen/ScreenAgricultor/RegistroProducto';
-import EditarProducto from './src/screen/ScreenAgricultor/EditarProducto';
-import VistaOpcionesAgricultor from './src/screen/ScreenAgricultor/VistaOpcionesAgricultor';
+import AgricultorStackNavigator from './src/navigation/AgricultorStack';
+import ConsumidorStackNavigator from './src/navigation/ConsumidorStack';
 
 const Stack = createStackNavigator();
 
 const App = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="PantallaRol">
+      <Stack.Navigator
+        initialRouteName="PantallaRol"
+        screenOptions={{headerShown: false}}>
         <Stack.Screen name="PantallaRol" component={PantallaRol} />
-        <Stack.Screen name="vistaPrincipal" component={vistaPrincipal} />
-        <Stack.Screen name="RegistroProducto" component={RegistroProducto} />
-        <Stack.Screen name="EditarProducto" component={EditarProducto} />
-        <Stack.Screen
-          name="VistaOpcionesAgricultor"
-          component={VistaOpcionesAgricultor}
-        />
+        <Stack.Screen name="Agricultor" component={AgricultorStackNavigator} />
+        <Stack.Screen name="Consumidor" component={ConsumidorStackNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
   );

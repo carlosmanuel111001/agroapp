@@ -8,11 +8,15 @@ const PantallaRol = () => {
   const navigation = useNavigation();
 
   const handleAgricultorPress = () => {
-    navigation.navigate('vistaPrincipal', {userRole: 'agricultor'});
+    navigation.navigate('Agricultor', {
+      screen: 'vistaPrincipal',
+    });
   };
 
   const handleConsumidorPress = () => {
-    navigation.navigate('InicioSesion', {userRole: 'consumidor'});
+    navigation.navigate('Consumidor', {
+      screen: 'VistaPrincipalConsumidor',
+    });
   };
 
   return (

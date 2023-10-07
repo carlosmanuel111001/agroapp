@@ -13,6 +13,7 @@ import firestore from '@react-native-firebase/firestore';
 import * as ImagePicker from 'react-native-image-picker';
 import RNFS from 'react-native-fs';
 import storage from '@react-native-firebase/storage';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import {useRoute, useNavigation} from '@react-navigation/native';
 
 const EditarProducto = () => {
@@ -26,7 +27,7 @@ const EditarProducto = () => {
       path: 'images',
     },
   };
-
+  // hook use state que contiene el estado del producto.
   const [producto, setProducto] = useState({
     tipoProducto: '',
     codigoProducto: '',
@@ -34,6 +35,8 @@ const EditarProducto = () => {
     nombreProducto: '',
     precioProducto: '',
     cantidadProducto: '',
+    fecha: new Date(),
+    mostrarDatePicker: false,
     descuentoProducto: '',
     ubicacion: '',
     // ...otros campos del producto
@@ -56,6 +59,7 @@ const EditarProducto = () => {
             nombreProducto: productoData.nombreProducto || '',
             precioProducto: productoData.precioProducto || 0,
             cantidadProducto: productoData.cantidadProducto || 0,
+            fecha: productoData.fecha?.toDate() || new Date(),
             descuentoProducto: productoData.descuentoProducto || 0,
             ubicacion: productoData.ubicacion || '',
             // ...otros campos del producto
@@ -70,23 +74,42 @@ const EditarProducto = () => {
 
     obtenerProductoDesdeFirestore();
   }, [id]);
+  const cambiarFecha = (event, selectedDate) => {
+    const currentDate = selectedDate || producto.fecha;
+    setProducto(prevState => ({
+      ...prevState,
+      fecha: currentDate,
+      mostrarDatePicker: false,
+    }));
+  };
+
+  const mostrarDatePicker = () => {
+    setProducto(prevState => ({
+      ...prevState,
+      mostrarDatePicker: true,
+    }));
+  };
 
   const handleActualizar = async () => {
     try {
       // Aquí estamos verificando si hay una nueva imagen en imageData; si no, usamos la que ya estaba en el producto.
       const imagenActualizada = producto.imagen;
       // Actualiza el producto en Firestore utilizando el método update
-      await firestore().collection('Productos').doc(id).update({
-        tipoProducto: producto.tipoProducto,
-        codigoProducto: producto.codigoProducto,
-        imagen: imagenActualizada,
-        nombreProducto: producto.nombreProducto,
-        precioProducto: producto.precioProducto,
-        cantidadProducto: producto.cantidadProducto,
-        descuentoProducto: producto.descuentoProducto,
-        ubicacion: producto.ubicacion,
-        // ...otros campos del producto
-      });
+      await firestore()
+        .collection('Productos')
+        .doc(id)
+        .update({
+          tipoProducto: producto.tipoProducto,
+          codigoProducto: producto.codigoProducto,
+          imagen: imagenActualizada,
+          nombreProducto: producto.nombreProducto,
+          precioProducto: producto.precioProducto,
+          cantidadProducto: producto.cantidadProducto,
+          fecha: firestore.Timestamp.fromDate(producto.fecha),
+          descuentoProducto: producto.descuentoProducto,
+          ubicacion: producto.ubicacion,
+          // ...otros campos del producto
+        });
 
       Alert.alert('Información', 'Producto actualizado con éxito', [
         {
@@ -193,6 +216,18 @@ const EditarProducto = () => {
           setProducto({...producto, cantidadProducto: parseFloat(text)})
         }
       />
+      <Text style={styles.label}>Fecha:</Text>
+      <TouchableOpacity style={styles.fechaInput} onPress={mostrarDatePicker}>
+        <Text>{producto.fecha.toDateString()}</Text>
+      </TouchableOpacity>
+      {producto.mostrarDatePicker && (
+        <DateTimePicker
+          value={producto.fecha}
+          mode={'date'}
+          display="default"
+          onChange={cambiarFecha}
+        />
+      )}
 
       <Text style={styles.label}>Descuento del Producto:</Text>
       <TextInput
@@ -288,6 +323,16 @@ const styles = StyleSheet.create({
   salirText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  fechaInput: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 15,
+    fontSize: 14,
+    backgroundColor: '#f9f9f9', // Un fondo gris claro para indicar que es seleccionable
+    justifyContent: 'center',
   },
 });
 

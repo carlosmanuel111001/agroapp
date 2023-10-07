@@ -8,6 +8,7 @@ import {
   Alert,
   ScrollView,
   Image,
+  Platform,
 } from 'react-native';
 import * as ImagePicker from 'react-native-image-picker';
 import {Picker} from '@react-native-picker/picker';
@@ -15,6 +16,7 @@ import firestore from '@react-native-firebase/firestore';
 import {useNavigation} from '@react-navigation/native'; // Asegúrate de tener esta importación
 import storage from '@react-native-firebase/storage';
 import RNFS from 'react-native-fs';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const RegistroProducto = () => {
   const navigation = useNavigation(); // Obtiene el objeto de navegación
@@ -25,6 +27,8 @@ const RegistroProducto = () => {
   const [nombreProducto, setNombreProducto] = useState('');
   const [precioProducto, setPrecioProducto] = useState('');
   const [cantidadProducto, setCantidadProducto] = useState('');
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [descuentoProducto, setDescuentoProducto] = useState('');
   const [ubicacion, setUbicacion] = useState('');
 
@@ -32,7 +36,15 @@ const RegistroProducto = () => {
     mediaType: 'photo',
     includeBase64: true,
   };
+  const onChangeDate = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setShowDatePicker(Platform.OS === 'ios');
+    setDate(currentDate);
+  };
 
+  const showDatepicker = () => {
+    setShowDatePicker(true);
+  };
   const selectImage = async () => {
     try {
       const response = await ImagePicker.launchImageLibrary(options);
@@ -74,17 +86,20 @@ const RegistroProducto = () => {
 
     try {
       const nombreProductoLowerCase = nombreProducto.toLowerCase(); // Convertir el nombre del producto a minúsculas
-      await firestore().collection('Productos').add({
-        tipoProducto: tipoProducto,
-        codigoProducto: codigoProducto,
-        imagen: imageData,
-        nombreProducto: nombreProducto,
-        precioProducto: precioProducto,
-        cantidadProducto: cantidadProducto,
-        descuentoProducto: descuentoProducto,
-        ubicacion: ubicacion,
-        nombreProductoLowerCase: nombreProductoLowerCase, // Almacenar el nombre del producto en minúsculas para facilitar la búsqueda
-      });
+      await firestore()
+        .collection('Productos')
+        .add({
+          tipoProducto: tipoProducto,
+          codigoProducto: codigoProducto,
+          imagen: imageData,
+          nombreProducto: nombreProducto,
+          precioProducto: precioProducto,
+          cantidadProducto: cantidadProducto,
+          fechaVencimiento: firestore.Timestamp.fromDate(date),
+          descuentoProducto: descuentoProducto,
+          ubicacion: ubicacion,
+          nombreProductoLowerCase: nombreProductoLowerCase, // Almacenar el nombre del producto en minúsculas para facilitar la búsqueda
+        });
 
       Alert.alert('Información', 'Producto registrado con éxito', [
         {
@@ -170,6 +185,19 @@ const RegistroProducto = () => {
         }}
         keyboardType="numeric"
       />
+      <Text style={styles.label}>Fecha de Vencimiento:</Text>
+      <TouchableOpacity onPress={showDatepicker}>
+        <Text style={styles.input}>{date.toLocaleDateString()}</Text>
+      </TouchableOpacity>
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={date}
+          mode="date"
+          display="default"
+          onChange={onChangeDate}
+        />
+      )}
 
       <Text style={styles.label}>Descuento del Producto:</Text>
       <TextInput

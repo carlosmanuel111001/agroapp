@@ -130,11 +130,11 @@ const RegistroProducto = () => {
       <Text style={styles.label}>Precio del Producto:</Text>
       <TextInput
         style={styles.input}
-        value={`C${precioProducto}`}
+        value={`${'C$' + precioProducto}`}
         onChangeText={text => {
           // Validar que el texto sea un número antes de actualizar el estado
           const numericValue = text.replace(/[^\d]/g, ''); // Eliminar cualquier caracter que no sea número
-          setPrecioProducto(`C${numericValue}`);
+          setPrecioProducto(numericValue);
         }}
         keyboardType="numeric"
       />

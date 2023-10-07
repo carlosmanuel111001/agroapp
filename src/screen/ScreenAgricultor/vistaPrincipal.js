@@ -17,6 +17,7 @@ import {useNavigation} from '@react-navigation/native';
 const VistaPrincipal = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [pedidoSearch, setPedidoSearch] = useState('');
+  const [resultadosBusqueda, setResultadosBusqueda] = useState([]);
 
   const navigation = useNavigation();
 
@@ -27,7 +28,10 @@ const VistaPrincipal = () => {
     navigation.navigate('Mensaje');
   };
   const handleViewPress = () => {
+    // Abre el modal solo cuando se hace clic en el botón "Buscar"
     setModalVisible(true);
+    // Limpia los resultados de búsqueda cuando se abre el modal
+    setResultadosBusqueda([]);
   };
 
   const handleRegister = () => {
@@ -114,6 +118,33 @@ const VistaPrincipal = () => {
       {cancelable: false}, // El usuario debe tomar una decisión antes de cerrar el cuadro de diálogo
     );
   };
+
+  const handleSearch = async () => {
+    console.log('Texto de búsqueda:', pedidoSearch);
+
+    try {
+      const productosSnapshot = await firestore()
+        .collection('Productos')
+        .where('nombreProducto', '>=', pedidoSearch)
+        .get();
+
+      const productosEncontrados = productosSnapshot.docs.map(doc => ({
+        id: doc.id,
+        nombre: doc.data().nombreProducto,
+      }));
+
+      console.log('Resultados de la búsqueda:', productosEncontrados);
+
+      setResultadosBusqueda(productosEncontrados);
+    } catch (error) {
+      console.error('Error al buscar productos:', error);
+      Alert.alert(
+        'Error',
+        'No se pudo realizar la búsqueda. Por favor, inténtalo de nuevo.',
+      );
+    }
+  };
+
   return (
     <>
       <Modal
@@ -125,19 +156,18 @@ const VistaPrincipal = () => {
         }}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Buscar Pedido:</Text>
+            <Text style={styles.modalTitle}>Buscar Producto:</Text>
             <TextInput
               style={styles.input}
               value={pedidoSearch}
               onChangeText={text => setPedidoSearch(text)}
-              placeholder="Número de pedido o dato"
+              placeholder="Nombre del producto"
             />
             <TouchableOpacity
               style={styles.searchButton}
               onPress={() => {
-                // Aquí agregarás la lógica de búsqueda
-                console.log('Buscando pedido:', pedidoSearch);
-                setModalVisible(false);
+                // Llama a la función handleSearch para realizar la búsqueda
+                handleSearch();
               }}>
               <Text style={{color: 'white'}}>Buscar</Text>
             </TouchableOpacity>
@@ -146,6 +176,26 @@ const VistaPrincipal = () => {
               onPress={() => setModalVisible(false)}>
               <Text style={{color: 'white'}}>Cancelar</Text>
             </TouchableOpacity>
+            <FlatList
+              data={resultadosBusqueda}
+              keyExtractor={item => item.id}
+              renderItem={({item}) => (
+                <View style={styles.productRow}>
+                  <Text style={styles.productId}>{item.id}</Text>
+                  <Text style={styles.productName}>{item.nombre}</Text>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => handleEditPress(item.id)}>
+                    <Text style={styles.editButtonText}>Editar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleEliminar(item.id)}>
+                    <Text style={styles.deleteButtonText}>Eliminar</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            />
           </View>
         </View>
       </Modal>

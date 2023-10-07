@@ -13,6 +13,8 @@ import * as ImagePicker from 'react-native-image-picker';
 import {Picker} from '@react-native-picker/picker';
 import firestore from '@react-native-firebase/firestore';
 import {useNavigation} from '@react-navigation/native'; // Asegúrate de tener esta importación
+import storage from '@react-native-firebase/storage';
+import RNFS from 'react-native-fs';
 
 const RegistroProducto = () => {
   const navigation = useNavigation(); // Obtiene el objeto de navegación
@@ -31,19 +33,37 @@ const RegistroProducto = () => {
     includeBase64: true,
   };
 
-  const selectImage = () => {
-    ImagePicker.launchImageLibrary(options, response => {
-      console.log('ImagePicker Response:', response);
+  const selectImage = async () => {
+    try {
+      const response = await ImagePicker.launchImageLibrary(options);
+
       if (response.didCancel) {
         console.log('User cancelled image picker');
       } else if (response.error) {
         console.log('ImagePicker Error: ', response.error);
       } else {
-        const base64Image = response.assets.uri;
-        console.log(base64Image);
-        // setImageData(base64Image);
+        const imagePath = response.assets[0].uri;
+        const imageBase64 = await RNFS.readFile(imagePath, 'base64');
+
+        // Generar un nombre de archivo único para la imagen (puedes usar el timestamp, por ejemplo)
+        const uniqueFileName = `${Date.now()}.jpg`;
+
+        // Subir la imagen a Firebase Storage
+        const reference = storage().ref(`productos/${uniqueFileName}`);
+        await reference.putString(
+          `data:image/jpeg;base64,${imageBase64}`,
+          'data_url',
+        );
+
+        // Obtener la URL de descarga de la imagen
+        const imageUrl = await reference.getDownloadURL();
+
+        // Almacenar la URL de descarga en tu estado
+        setImageData(imageUrl);
       }
-    });
+    } catch (error) {
+      console.error('Error al seleccionar imagen:', error);
+    }
   };
 
   async function subirProducto() {

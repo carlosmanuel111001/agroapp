@@ -10,12 +10,22 @@ import {
   Image,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
+import * as ImagePicker from 'react-native-image-picker';
+import RNFS from 'react-native-fs';
+import storage from '@react-native-firebase/storage';
 import {useRoute, useNavigation} from '@react-navigation/native';
 
 const EditarProducto = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const {id} = route.params; // Extraer el id de las params de la ruta
+  const {id} = route.params; // Extraer el id de las params de la ruta.
+  const imagePickerOptions = {
+    title: 'Seleccionar imagen',
+    storageOptions: {
+      skipBackup: true,
+      path: 'images',
+    },
+  };
 
   const [producto, setProducto] = useState({
     tipoProducto: '',
@@ -44,9 +54,9 @@ const EditarProducto = () => {
             codigoProducto: productoData.codigoProducto || '',
             imagen: productoData.imagen || null,
             nombreProducto: productoData.nombreProducto || '',
-            precioProducto: productoData.precioProducto || '',
-            cantidadProducto: productoData.cantidadProducto || '',
-            descuentoProducto: productoData.descuentoProducto || '',
+            precioProducto: productoData.precioProducto || 0,
+            cantidadProducto: productoData.cantidadProducto || 0,
+            descuentoProducto: productoData.descuentoProducto || 0,
             ubicacion: productoData.ubicacion || '',
             // ...otros campos del producto
           });
@@ -63,11 +73,13 @@ const EditarProducto = () => {
 
   const handleActualizar = async () => {
     try {
+      // Aquí estamos verificando si hay una nueva imagen en imageData; si no, usamos la que ya estaba en el producto.
+      const imagenActualizada = producto.imagen;
       // Actualiza el producto en Firestore utilizando el método update
       await firestore().collection('Productos').doc(id).update({
         tipoProducto: producto.tipoProducto,
         codigoProducto: producto.codigoProducto,
-        imagen: producto.imagen,
+        imagen: imagenActualizada,
         nombreProducto: producto.nombreProducto,
         precioProducto: producto.precioProducto,
         cantidadProducto: producto.cantidadProducto,
@@ -88,6 +100,39 @@ const EditarProducto = () => {
         'Error',
         'No se pudo actualizar el producto. Por favor, inténtalo de nuevo.',
       );
+    }
+  };
+
+  const selectImage = async () => {
+    try {
+      const response = await ImagePicker.launchImageLibrary(imagePickerOptions);
+
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else {
+        const imagePath = response.assets[0].uri;
+        const imageBase64 = await RNFS.readFile(imagePath, 'base64');
+
+        // Generar un nombre de archivo único para la imagen (puedes usar el timestamp, por ejemplo)
+        const uniqueFileName = `${Date.now()}.jpg`;
+
+        // Subir la imagen a Firebase Storage
+        const reference = storage().ref(`productos/${uniqueFileName}`);
+        await reference.putString(
+          `data:image/jpeg;base64,${imageBase64}`,
+          'data_url',
+        );
+
+        // Obtener la URL de descarga de la imagen
+        const imageUrl = await reference.getDownloadURL();
+
+        // Almacenar la URL de descarga en tu estado
+        setProducto({...producto, imagen: imageUrl});
+      }
+    } catch (error) {
+      console.error('Error al seleccionar imagen:', error);
     }
   };
   const handleSalir = () => {
@@ -111,10 +156,21 @@ const EditarProducto = () => {
       />
 
       {/* Aquí puedes manejar la lógica para mostrar la imagen si hay una URL de imagen en el estado del producto */}
+      <TouchableOpacity style={styles.imageButton} onPress={selectImage}>
+        <Text style={styles.imageButtonText}>Seleccionar Nueva Imagen</Text>
+      </TouchableOpacity>
       {producto.imagen && (
-        <Image source={{uri: producto.imagen}} style={styles.productImage} />
+        <View style={styles.imagePreviewContainer}>
+          <Text style={styles.imagePreviewText}>
+            Vista previa de la imagen:
+          </Text>
+          <Image
+            source={{uri: producto.imagen}}
+            style={styles.imagePreview}
+            onError={error => console.log('Error al cargar la imagen:', error)}
+          />
+        </View>
       )}
-
       <Text style={styles.label}>Nombre del producto:</Text>
       <TextInput
         style={styles.input}
@@ -125,25 +181,25 @@ const EditarProducto = () => {
       <Text style={styles.label}>Precio del Producto:</Text>
       <TextInput
         style={styles.input}
-        value={producto.precioProducto}
+        value={String(producto.precioProducto)}
         onChangeText={text => setProducto({...producto, precioProducto: text})}
       />
 
       <Text style={styles.label}>Cantidad del Producto:</Text>
       <TextInput
         style={styles.input}
-        value={producto.cantidadProducto}
+        value={String(producto.cantidadProducto)}
         onChangeText={text =>
-          setProducto({...producto, cantidadProducto: text})
+          setProducto({...producto, cantidadProducto: parseFloat(text)})
         }
       />
 
       <Text style={styles.label}>Descuento del Producto:</Text>
       <TextInput
         style={styles.input}
-        value={producto.descuentoProducto}
+        value={String(producto.descuentoProducto)}
         onChangeText={text =>
-          setProducto({...producto, descuentoProducto: text})
+          setProducto({...producto, descuentoProducto: parseFloat(text)})
         }
       />
 
@@ -196,6 +252,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 10,
+  },
+  imagePreview: {
+    width: 200,
+    height: 200,
+    resizeMode: 'cover', // Esto garantiza que la imagen se ajuste correctamente
   },
   buttonContainer: {
     flexDirection: 'row',

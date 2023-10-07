@@ -4,6 +4,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import vistaPrincipal from './src/screen/ScreenAgricultor/vistaPrincipal';
 import RegistroProducto from './src/screen/ScreenAgricultor/RegistroProducto';
 import EditarProducto from './src/screen/ScreenAgricultor/EditarProducto';
+import VistaOpcionesAgricultor from './src/screen/ScreenAgricultor/VistaOpcionesAgricultor';
 
 const Stack = createStackNavigator();
 
@@ -14,6 +15,10 @@ const App = () => {
         <Stack.Screen name="vistaPrincipal" component={vistaPrincipal} />
         <Stack.Screen name="RegistroProducto" component={RegistroProducto} />
         <Stack.Screen name="EditarProducto" component={EditarProducto} />
+        <Stack.Screen
+          name="VistaOpcionesAgricultor"
+          component={VistaOpcionesAgricultor}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

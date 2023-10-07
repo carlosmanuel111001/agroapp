@@ -22,7 +22,7 @@ const VistaPrincipal = () => {
   const navigation = useNavigation();
 
   const handleMenuPress = () => {
-    navigation.navigate('Opciones');
+    navigation.navigate('VistaOpcionesAgricultor');
   };
   const handleMessagesPress = () => {
     navigation.navigate('Mensaje');
@@ -244,12 +244,20 @@ const VistaPrincipal = () => {
             <Text style={styles.productListHeaderText}>Lista de Productos</Text>
           </View>
           <View style={styles.listContainer}>
+            <View style={styles.productListHeader}>
+              <View style={styles.productRow}>
+                <Text style={styles.columnHeader}>ID</Text>
+                <Text style={styles.columnHeader}>Producto</Text>
+              </View>
+            </View>
             <FlatList
               data={productos}
               keyExtractor={item => item.id}
               renderItem={({item}) => (
                 <View style={styles.productRow}>
-                  <Text style={styles.productId}>{item.id}</Text>
+                  <Text style={styles.productId}>
+                    {item.id.substring(0, 3)}
+                  </Text>
                   <Text style={styles.productName}>{item.nombre}</Text>
                   <View style={styles.editDeleteButtonContainer}>
                     <TouchableOpacity
@@ -334,8 +342,10 @@ const styles = StyleSheet.create({
   },
   productListHeader: {
     alignItems: 'center',
-    paddingVertical: 10,
-    backgroundColor: 'white', // Puedes cambiar este color si lo deseas
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    padding: 10,
   },
 
   productListHeaderText: {
@@ -351,23 +361,34 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
-
+  columnHeader: {
+    flex: 1,
+    fontSize: 16,
+    color: 'black',
+    fontWeight: 'bold',
+  },
   productId: {
     flex: 1,
     fontSize: 16,
     color: 'black',
+    textAlign: 'center',
   },
-
   productName: {
-    flex: 3,
+    flex: 1,
     fontSize: 16,
     color: 'black',
+    textAlign: 'center',
+  },
+  editDeleteButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   editButton: {
-    backgroundColor: 'black', // Cambia el color a negro
-    paddingVertical: 4, // ajusta la altura
-    paddingHorizontal: 10, // ajusta la anchura
+    backgroundColor: '#5DDCAE',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: 'center',
     marginRight: 10,
@@ -375,30 +396,22 @@ const styles = StyleSheet.create({
 
   editButtonText: {
     color: 'white',
+    fontSize: 16,
     fontWeight: 'bold',
   },
 
   deleteButton: {
-    backgroundColor: 'black', // Cambia el color a negro
-    paddingVertical: 4, // ajusta la altura
-    paddingHorizontal: 10, // ajusta la anchura
+    backgroundColor: '#F76D57',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: 'center',
   },
 
   deleteButtonText: {
     color: 'white',
+    fontSize: 16,
     fontWeight: 'bold',
-  },
-  editDeleteButtonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 2,
-    marginTop: 5, // Ajusta este valor para separar los botones del texto central
-  },
-  listContainer: {
-    marginTop: 80, // Puedes ajustar este valor según tus necesidades
   },
   // Estilos para el modal
   modalContainer: {
@@ -408,9 +421,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)', // fondo semi-transparente
   },
   modalContent: {
-    width: 300,
+    width: 350, // Ancho del modal
     padding: 20,
-    backgroundColor: '#ffffff',
+    backgroundColor: 'white',
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: {
@@ -422,28 +435,29 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 15, // Espaciado inferior
+    textAlign: 'center', // Centrar el texto
   },
   input: {
     borderWidth: 1,
     marginTop: 10,
-    padding: 5,
+    padding: 10, // Aumentar el espacio interno
     borderColor: '#e0e0e0',
     borderRadius: 5,
   },
   searchButton: {
     backgroundColor: '#5DDCAE',
-    marginTop: 15,
-    padding: 10,
+    marginTop: 20, // Aumentar el espacio superior
+    padding: 15, // Aumentar el espacio interno
     borderRadius: 5,
     alignItems: 'center',
   },
   cancelButton: {
     backgroundColor: '#F76D57',
     marginTop: 10,
-    padding: 10,
+    padding: 15, // Aumentar el espacio interno
     borderRadius: 5,
     alignItems: 'center',
   },
@@ -456,6 +470,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#7B8D93', // Un color tenue para que el botón sea discreto
     textDecorationLine: 'underline',
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#e0e0e0',
+    padding: 10,
   },
 });
 

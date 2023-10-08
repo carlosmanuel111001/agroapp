@@ -7,21 +7,11 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import {formatDate} from './dateUtils';
 
 const cart = [];
 
 const DescripcionProducto = ({route, navigation}) => {
   const {selectedProduct} = route.params;
-
-  const firebaseTimestamp = selectedProduct.fecha?.seconds
-    ? formatDate(selectedProduct.fecha.seconds)
-    : 'No disponible';
-  // o fechaVencimiento, si es eso lo que quieres mostrar
-  const dateObject = new Date(firebaseTimestamp.seconds * 1000);
-  const formattedDate = `${dateObject.getDate()}/${
-    dateObject.getMonth() + 1
-  }/${dateObject.getFullYear()}`;
 
   if (!selectedProduct) {
     return <Text>Error: No se pudo cargar el producto</Text>;

@@ -41,10 +41,12 @@ const FilaDeTarjetas = ({productos, handleCardClick}) => (
 
 const VistaPrincipalConsumidor = ({navigation}) => {
   const [productos, setProductos] = useState([]);
-  const [columns, setColumns] = useState(3);
+  const [listaOriginalProductos, setListaOriginalProductos] = useState([]);
+  const [columns] = useState(3);
+  const [textoBusqueda, setTextoBusqueda] = useState('');
 
   useEffect(() => {
-    const suscribirse = firestore()
+    const desuscribirse = firestore()
       .collection('Productos')
       .onSnapshot(querySnapshot => {
         const productosFirebase = [];
@@ -54,14 +56,14 @@ const VistaPrincipalConsumidor = ({navigation}) => {
             id: documentSnapshot.id,
           });
         });
-        console.log(productosFirebase);
+
         setProductos(productosFirebase);
+        setListaOriginalProductos(productosFirebase);
       });
 
     // Desuscribirse del listener cuando el componente se desmonte
-    return () => suscribirse();
+    return () => desuscribirse();
   }, []);
-
   const handleMenuPress = () => {
     navigation.navigate('OpcionesConsumidor');
   };
@@ -70,33 +72,22 @@ const VistaPrincipalConsumidor = ({navigation}) => {
   };
 
   const handleSearchPress = () => {
-    console.log('Search button pressed!');
-    // Aquí puedes agregar la lógica para realizar la búsqueda
+    if (!textoBusqueda.trim()) {
+      // Si el campo de búsqueda está vacío, restablece a la lista original.
+      setProductos(listaOriginalProductos);
+    } else {
+      const productosFiltrados = listaOriginalProductos.filter(producto =>
+        producto.nombreProducto
+          .toLowerCase()
+          .includes(textoBusqueda.toLowerCase()),
+      );
+      setProductos(productosFiltrados);
+    }
   };
   const handleCardClick = product => {
     navigation.navigate('DescripcionProducto', {
       selectedProduct: product,
     });
-  };
-  const groupedData = [];
-  for (let i = 0; i < productos.length; i += 3) {
-    groupedData.push(productos.slice(i, i + 3));
-  }
-  const sampleImagePath = require('../assets/productos.png');
-
-  // Simulación de datos (Puedes extender este array para simular más productos)
-  const IMAGES = {
-    sample: sampleImagePath,
-    // ... otros assets
-  };
-
-  // ...
-  const groupProducts = (list, itemsPerGroup = 3) => {
-    const grouped = [];
-    for (let i = 0; i < list.length; i += itemsPerGroup) {
-      grouped.push(list.slice(i, i + itemsPerGroup));
-    }
-    return grouped;
   };
 
   const handleLogOut = () => {
@@ -129,22 +120,24 @@ const VistaPrincipalConsumidor = ({navigation}) => {
   };
   const cartItemsCount = 5;
 
+  const mitad = Math.ceil(productos.length / 2);
+  const productosCercaDeTi = productos.slice(0, mitad);
+  const productosDeInteres = productos.slice(mitad);
+
   return (
     <ScrollView style={styles.container}>
+      {/* Encabezado */}
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={handleMenuPress}>
           <Image source={require('../assets/menu.png')} style={styles.icon} />
         </TouchableOpacity>
-
         <Text style={styles.header}>Productos Disponibles</Text>
-
         <TouchableOpacity onPress={handleMessagePress}>
           <Image
             source={require('../assets/mensaje.png')}
             style={styles.icon}
           />
         </TouchableOpacity>
-
         <TouchableOpacity onPress={() => navigation.navigate('Carrito')}>
           <Image
             source={require('../assets/carrito.png')}
@@ -160,7 +153,16 @@ const VistaPrincipalConsumidor = ({navigation}) => {
 
       {/* Sección de búsqueda */}
       <View style={styles.searchCard}>
-        <TextInput style={styles.searchInput} placeholder="Buscar..." />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar..."
+          onChangeText={text => {
+            setTextoBusqueda(text);
+            if (!text.trim()) {
+              setProductos(listaOriginalProductos);
+            }
+          }}
+        />
         <TouchableOpacity onPress={handleSearchPress}>
           <Image
             source={require('../assets/visualizar.png')}
@@ -170,39 +172,43 @@ const VistaPrincipalConsumidor = ({navigation}) => {
       </View>
 
       {/* Sección "Cerca de ti" */}
-      <Text style={styles.tituloCercaDeTi}>Cerca de ti</Text>
-      <FlatList
-        data={productos}
-        numColumns={columns}
-        key={columns} // ¡Aquí está el truco!
-        keyExtractor={item => item.id.toString()}
-        renderItem={({item}) => (
-          <FilaDeTarjetas
-            productos={[item]}
-            handleCardClick={handleCardClick}
-          />
-        )}
-      />
+      <View style={styles.section}>
+        <Text style={styles.sectionHeader}>Cerca de ti</Text>
+        <FlatList
+          data={productosCercaDeTi}
+          numColumns={columns}
+          keyExtractor={(item, index) => 'CercaDeTi-' + item.id.toString()}
+          renderItem={({item}) => (
+            <FilaDeTarjetas
+              productos={[item]}
+              handleCardClick={handleCardClick}
+            />
+          )}
+        />
+      </View>
 
       {/* Sección "De Interés" */}
-      <Text style={styles.tituloDeInteres}>De Interés</Text>
-      <FlatList
-        data={productos}
-        numColumns={columns}
-        key={columns} // ¡Aquí está el truco!
-        keyExtractor={item => item.id.toString()}
-        renderItem={({item}) => (
-          <FilaDeTarjetas
-            productos={[item]}
-            handleCardClick={handleCardClick}
-          />
-        )}
-      />
+      <View style={styles.section}>
+        <Text style={styles.sectionHeader}>De Interés</Text>
+        <FlatList
+          data={productosDeInteres}
+          numColumns={columns}
+          keyExtractor={(item, index) => 'DeInteres-' + item.id.toString()}
+          renderItem={({item}) => (
+            <FilaDeTarjetas
+              productos={[item]}
+              handleCardClick={handleCardClick}
+            />
+          )}
+        />
+      </View>
 
       {/* Botón de salida */}
-      <TouchableOpacity onPress={handleLogOut} style={styles.logOutButton}>
-        <Text style={styles.logOutText}>Salir</Text>
-      </TouchableOpacity>
+      <View style={styles.footer}>
+        <TouchableOpacity onPress={handleLogOut} style={styles.logOutButton}>
+          <Text style={styles.logOutText}>Salir</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 };
@@ -214,6 +220,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#EAEDED',
     padding: 20,
+  },
+  section: {
+    marginVertical: 10,
+  },
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  footer: {
+    marginVertical: 20,
   },
   headerContainer: {
     flexDirection: 'row',

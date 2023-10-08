@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,51 @@ import {
   Dimensions,
   Alert,
 } from 'react-native';
+import firestore from '@react-native-firebase/firestore';
+
+const FilaDeTarjetas = ({productos, handleCardClick}) => (
+  <View style={styles.filaDeTarjetas}>
+    {Array.isArray(productos) &&
+      productos.map(producto => (
+        <TouchableOpacity
+          key={producto.id}
+          onPress={() => handleCardClick(producto)}
+          style={styles.tarjeta}>
+          <Image
+            source={{uri: producto.imagen}}
+            style={styles.imagenDeProducto}
+          />
+          <Text style={styles.descripcionDelProducto}>
+            {producto.nombreProducto}
+          </Text>
+        </TouchableOpacity>
+      ))}
+  </View>
+);
 
 const VistaPrincipalConsumidor = ({navigation}) => {
+  const [productos, setProductos] = useState([]);
+  const [columns, setColumns] = useState(3);
+
+  useEffect(() => {
+    const suscribirse = firestore()
+      .collection('Productos')
+      .onSnapshot(querySnapshot => {
+        const productosFirebase = [];
+        querySnapshot.forEach(documentSnapshot => {
+          productosFirebase.push({
+            ...documentSnapshot.data(),
+            id: documentSnapshot.id,
+          });
+        });
+        console.log(productosFirebase);
+        setProductos(productosFirebase);
+      });
+
+    // Desuscribirse del listener cuando el componente se desmonte
+    return () => suscribirse();
+  }, []);
+
   const handleMenuPress = () => {
     navigation.navigate('OpcionesConsumidor');
   };
@@ -30,25 +73,27 @@ const VistaPrincipalConsumidor = ({navigation}) => {
       selectedProduct: product,
     });
   };
+  const groupedData = [];
+  for (let i = 0; i < productos.length; i += 3) {
+    groupedData.push(productos.slice(i, i + 3));
+  }
+  const sampleImagePath = require('../assets/productos.png');
+
   // Simulación de datos (Puedes extender este array para simular más productos)
   const IMAGES = {
-    sample: require('../assets/productos.png'),
+    sample: sampleImagePath,
     // ... otros assets
   };
 
   // ...
+  const groupProducts = (list, itemsPerGroup = 3) => {
+    const grouped = [];
+    for (let i = 0; i < list.length; i += itemsPerGroup) {
+      grouped.push(list.slice(i, i + itemsPerGroup));
+    }
+    return grouped;
+  };
 
-  const simulatedData = Array(10)
-    .fill(null)
-    .map((_, index) => ({
-      id: index.toString(),
-      image: IMAGES.sample,
-      description: `Descripción del producto ${index + 1}`,
-    }));
-  const groupedData = [];
-  for (let i = 0; i < simulatedData.length; i += 3) {
-    groupedData.push(simulatedData.slice(i, i + 3));
-  }
   const handleLogOut = () => {
     Alert.alert(
       'Confirmación',
@@ -108,6 +153,7 @@ const VistaPrincipalConsumidor = ({navigation}) => {
         </TouchableOpacity>
       </View>
 
+      {/* Sección de búsqueda */}
       <View style={styles.searchCard}>
         <TextInput style={styles.searchInput} placeholder="Buscar..." />
         <TouchableOpacity onPress={handleSearchPress}>
@@ -117,58 +163,47 @@ const VistaPrincipalConsumidor = ({navigation}) => {
           />
         </TouchableOpacity>
       </View>
+
       {/* Sección "Cerca de ti" */}
-      <Text style={styles.nearbyTitle}>Cerca de ti</Text>
+      <Text style={styles.tituloCercaDeTi}>Cerca de ti</Text>
       <FlatList
-        horizontal
-        data={groupedData}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({item: group}) => (
-          <View style={styles.cardGroup}>
-            {group.map(product => (
-              <TouchableOpacity
-                key={product.id}
-                onPress={() => handleCardClick(product)}>
-                <View style={styles.card}>
-                  <Image source={product.image} style={styles.productImage} />
-                  <Text style={styles.productDescription}>
-                    {product.description}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
+        data={productos}
+        numColumns={columns}
+        key={columns} // ¡Aquí está el truco!
+        keyExtractor={item => item.id.toString()}
+        renderItem={({item}) => (
+          <FilaDeTarjetas
+            productos={[item]}
+            handleCardClick={handleCardClick}
+          />
         )}
       />
-      {/* Sección "De interés" */}
-      <Text style={styles.nearbyTitle}>De Interes</Text>
+
+      {/* Sección "De Interés" */}
+      <Text style={styles.tituloDeInteres}>De Interés</Text>
       <FlatList
-        horizontal
-        data={groupedData}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({item: group}) => (
-          <View style={styles.cardGroup}>
-            {group.map(product => (
-              <TouchableOpacity
-                key={product.id}
-                onPress={() => handleCardClick(product)}>
-                <View style={styles.card}>
-                  <Image source={product.image} style={styles.productImage} />
-                  <Text style={styles.productDescription}>
-                    {product.description}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
+        data={productos}
+        numColumns={columns}
+        key={columns} // ¡Aquí está el truco!
+        keyExtractor={item => item.id.toString()}
+        renderItem={({item}) => (
+          <FilaDeTarjetas
+            productos={[item]}
+            handleCardClick={handleCardClick}
+          />
         )}
       />
+
+      {/* Botón de salida */}
       <TouchableOpacity onPress={handleLogOut} style={styles.logOutButton}>
         <Text style={styles.logOutText}>Salir</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 };
+const windowWidth = Dimensions.get('window').width;
+const cardWidth = windowWidth / 3 - 20; // Dividimos por 3 para mostrar tres tarjetas en una fila y aplicamos margen
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -204,6 +239,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 12,
     marginTop: 20,
+    marginBottom: 20, // Espacio después de la sección de búsqueda
     borderRadius: 25,
     shadowColor: '#000',
     shadowOffset: {
@@ -220,17 +256,18 @@ const styles = StyleSheet.create({
     borderColor: '#EAEDED',
     borderWidth: 1,
     borderRadius: 20,
-    paddingLeft: 20, // espacio adicional a la izquierda para el texto
-    paddingRight: 10, // espacio adicional a la derecha
-    fontSize: 16, // tamaño de texto un poco más grande
-    color: '#2C3E50', // color del texto
-    backgroundColor: '#F2F3F4', // fondo ligeramente gris para que se destaque
+    paddingLeft: 20,
+    paddingRight: 10,
+    fontSize: 16,
+    color: '#2C3E50',
+    backgroundColor: '#F2F3F4',
   },
   searchImage: {
-    width: 25, // ajustado para no ser demasiado grande
-    height: 25, // ajustado para no ser demasiado grande
-    marginLeft: 10, // un poco de espacio entre el texto y el ícono
+    width: 25,
+    height: 25,
+    marginLeft: 10,
   },
+
   nearbyTitle: {
     fontSize: 22,
     fontWeight: 'bold',
@@ -245,11 +282,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   card: {
-    width: '30%', // Considerando 3 tarjetas y un poco de espacio entre ellas
+    justifyContent: 'space-between',
     backgroundColor: 'white',
     borderRadius: 15,
-    overflow: 'hidden', // Asegura que la imagen no sobrepase los bordes redondeados
-    marginBottom: 10,
+    margin: 5, // Un pequeño margen para separar las tarjetas
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -261,13 +298,14 @@ const styles = StyleSheet.create({
   },
   productImage: {
     width: '100%',
-    height: 100, // Puedes ajustar esto dependiendo de tus necesidades
-    resizeMode: 'cover', // Asegura que la imagen cubra todo el espacio
+    height: '75%', // Establecemos que la imagen ocupe el 75% del alto de la tarjeta
+    resizeMode: 'cover',
   },
   productDescription: {
     padding: 5,
     fontSize: 14,
     textAlign: 'center',
+    flex: 1, // Para que ocupe el espacio restante en la tarjeta
   },
   cardGroup: {
     flexDirection: 'row',
@@ -275,7 +313,7 @@ const styles = StyleSheet.create({
   },
   logOutButton: {
     marginTop: 20,
-    marginBottom: 10, // Espacio en la parte inferior
+    marginBottom: 50, // Espacio en la parte inferior
     alignSelf: 'center',
   },
   logOutText: {
@@ -297,6 +335,51 @@ const styles = StyleSheet.create({
   cartCounterText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  // Estilos para los títulos y tarjetas
+  tituloCercaDeTi: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: 'black',
+    marginBottom: 15,
+  },
+  tituloDeInteres: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: 'black',
+    marginBottom: 15,
+  },
+  filaDeTarjetas: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start', // Asegura que las tarjetas se alineen desde la izquierda
+    marginBottom: 15,
+  },
+  tarjeta: {
+    width: cardWidth,
+    backgroundColor: 'white',
+    borderRadius: 15,
+    overflow: 'hidden',
+    margin: 5, // Agrega margen alrededor de cada tarjeta
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.22,
+    shadowRadius: 2.22,
+    elevation: 3,
+  },
+  imagenDeProducto: {
+    width: '100%',
+    height: cardWidth * 0.75,
+    resizeMode: 'cover',
+  },
+  descripcionDelProducto: {
+    padding: 5,
+    fontSize: 14,
+    textAlign: 'center',
+    flex: 1,
+    color: 'black', // Color del texto
   },
 });
 

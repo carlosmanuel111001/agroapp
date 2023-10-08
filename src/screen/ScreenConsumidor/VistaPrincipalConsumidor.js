@@ -21,10 +21,16 @@ const FilaDeTarjetas = ({productos, handleCardClick}) => (
           key={producto.id}
           onPress={() => handleCardClick(producto)}
           style={styles.tarjeta}>
-          <Image
-            source={{uri: producto.imagen}}
-            style={styles.imagenDeProducto}
-          />
+          {producto.imagen ? ( // Si hay imagen, la renderiza.
+            <Image
+              source={{uri: producto.imagen}}
+              style={styles.imagenDeProducto}
+            />
+          ) : (
+            // Si no hay imagen, muestra un View en blanco con el mismo tamaño.
+            <View style={styles.imagenDeProductoPlaceholder}></View>
+          )}
+
           <Text style={styles.descripcionDelProducto}>
             {producto.nombreProducto}
           </Text>
@@ -68,8 +74,7 @@ const VistaPrincipalConsumidor = ({navigation}) => {
     // Aquí puedes agregar la lógica para realizar la búsqueda
   };
   const handleCardClick = product => {
-    navigation.navigate('ProductosDelAgricultor', {
-      agricultorId: product.agricultorId,
+    navigation.navigate('DescripcionProducto', {
       selectedProduct: product,
     });
   };
@@ -380,6 +385,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     flex: 1,
     color: 'black', // Color del texto
+  },
+  imagenDeProductoPlaceholder: {
+    width: '100%',
+    height: cardWidth * 0.75, // Toma el mismo espacio que la imagen.
+    backgroundColor: '#F2F3F4', // Color de fondo claro como placeholder. Puedes ajustar este color según tus preferencias.
   },
 });
 

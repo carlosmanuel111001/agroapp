@@ -116,7 +116,7 @@ const VistaPrincipalConsumidor = ({navigation}) => {
     );
   };
   const handleCartPress = () => {
-    navigation.navigate('CarritoDeCompras');
+    navigation.navigate('Carrito');
   };
   const cartItemsCount = 5;
 

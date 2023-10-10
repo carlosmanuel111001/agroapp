@@ -39,7 +39,7 @@ const DescripcionProducto = ({route, navigation}) => {
   const handleAddToCart = () => {
     cart.push(selectedProduct); // Agrega el producto al carrito.
     alert('Producto agregado al carrito!');
-    navigation.goBack(); // Regresa a la pantalla anterior.
+    navigation.navigate('Carrito', {carrito: cart});
   };
 
   return (

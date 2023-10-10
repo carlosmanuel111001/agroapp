@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -7,41 +7,57 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import {createStackNavigator} from '@react-navigation/stack';
+import {CartContext} from '../ScreenCompartidas/CarritoContext';
 
 const DetalleCarrito = ({route, navigation}) => {
-  const agricultorId = route.params.agricultorId;
-  const agricultorInfo = {
+  const {cart, setCart} = useContext(CartContext);
+  const producto = route.params.productoSeleccionado;
+
+  const agricultorDefault = {
+    id: 1, // ID del producto
     nombre: 'Juan Pérez',
     telefono: '123-456-7890',
     email: 'juan@email.com',
   };
 
-  const [productos, setProductos] = useState([
-    {id: '1', nombre: 'Manzana', cantidad: 3, precio: 10},
-    {id: '2', nombre: 'Plátano', cantidad: 2, precio: 15},
-    // ... otros productos
-  ]);
-  const totalCost = productos.reduce(
+  const agricultorInfo = route.params.agricultorInfo || agricultorDefault;
+  const totalCost = cart.reduce(
     (acc, prod) => acc + prod.precio * prod.cantidad,
     0,
   );
 
   const handleChat = () => {
-    navigation.navigate('DetalleMensaje', {agricultorId: agricultorId});
+    alert('Funcionalidad de chat en desarrollo. ¡Pronto estará disponible!');
   };
-
+  // Logica para disminuir el producto
   const handleDecrease = id => {
-    // Lógica para disminuir la cantidad del producto
+    setCart(prevCart => {
+      return prevCart.map(producto => {
+        if (producto.id === id && producto.cantidad > 1) {
+          return {...producto, cantidad: producto.cantidad - 1};
+        }
+        return producto;
+      });
+    });
   };
-
+  // Lógica para aumentar la cantidad del producto
   const handleIncrease = id => {
-    // Lógica para aumentar la cantidad del producto
+    setCart(prevCart => {
+      return prevCart.map(producto => {
+        if (producto.id === id) {
+          return {...producto, cantidad: producto.cantidad + 1};
+        }
+        return producto;
+      });
+    });
+  };
+  // Lógica para eliminar el producto del carrito
+  const handleRemove = id => {
+    setCart(prevCart => {
+      return prevCart.filter(producto => producto.id !== id);
+    });
   };
 
-  const handleRemove = id => {
-    // Lógica para eliminar el producto del carrito
-  };
   const handlePago = () => {
     navigation.navigate('RealizarPago', {name: 'Nombre del Agricultor'});
   };
@@ -74,7 +90,7 @@ const DetalleCarrito = ({route, navigation}) => {
       </View>
       <FlatList
         contentContainerStyle={styles.listaContenido}
-        data={productos}
+        data={cart}
         keyExtractor={item => item.id}
         renderItem={({item}) => (
           <View style={styles.itemProducto}>

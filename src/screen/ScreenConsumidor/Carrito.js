@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext, useEffect} from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,17 @@ import {
   Image,
   StatusBar,
 } from 'react-native';
+import {CartContext} from '../ScreenCompartidas/CarritoContext';
 
 const CarritoDeCompras = ({route, navigation}) => {
-  // Usamos el carrito pasado a través de route.params o, si no existe, usamos un array vacío.
-  const carrito = route?.params?.carrito || [];
+  const carritoContext = useContext(CartContext);
+  const carrito = carritoContext.cart;
+  useEffect(() => {
+    console.log('Nombres de los productos en el carrito:');
+    carrito.forEach(item => {
+      console.log(item.nombreProducto);
+    });
+  }, [carrito]);
 
   return (
     <View style={styles.container}>
@@ -31,13 +38,14 @@ const CarritoDeCompras = ({route, navigation}) => {
       <FlatList
         contentContainerStyle={styles.listaContenido}
         data={carrito}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={item => (item && item.id ? item.id.toString() : '')}
         renderItem={({item}) => (
           <TouchableOpacity
             onPress={() =>
-              navigation.navigate('DetalleCarrito', {agricultorId: item.id})
-            } // Asume que cada producto tiene un ID de agricultor asociado
-          >
+              navigation.navigate('DetalleCarrito', {
+                productoSeleccionado: item,
+              })
+            }>
             <View style={styles.itemProductoContainer}>
               <Text style={styles.nombreProducto}>{item.nombreProducto}</Text>
               <Text style={styles.detalleProducto}>
@@ -102,12 +110,12 @@ const styles = StyleSheet.create({
   nombreProducto: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#212121',
+    color: '#212121', // Cambiado a un color oscuro (#212121)
   },
   detalleProducto: {
     marginTop: 5,
     fontSize: 14,
-    color: '#757575',
+    color: '#555', // Cambiado a un tono de gris más oscuro (#555)
   },
 });
 

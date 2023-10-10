@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,10 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-
-const cart = [];
+import {CartContext} from '../ScreenCompartidas/CarritoContext';
 
 const DescripcionProducto = ({route, navigation}) => {
+  const {cart, setCart} = useContext(CartContext);
   const {selectedProduct} = route.params;
 
   if (!selectedProduct) {
@@ -24,7 +24,6 @@ const DescripcionProducto = ({route, navigation}) => {
 
     return `${day}-${month}-${year}`;
   }
-
   const handleBuyPress = () => {
     navigation.navigate('Pagar', {
       productName: selectedProduct.name,
@@ -36,10 +35,21 @@ const DescripcionProducto = ({route, navigation}) => {
     navigation.navigate('DetalleMensaje', {});
   };
 
+  // En tu componente DescripcionProducto
   const handleAddToCart = () => {
-    cart.push(selectedProduct); // Agrega el producto al carrito.
-    alert('Producto agregado al carrito!');
-    navigation.navigate('Carrito', {carrito: cart});
+    console.log('Botón "Agregar al Carrito" presionado');
+
+    if (selectedProduct && selectedProduct.nombreProducto) {
+      // El objeto selectedProduct existe y tiene la propiedad nombreProducto
+      // Ahora puedes agregar el producto al carrito
+      setCart(prevCart => [...prevCart, selectedProduct]);
+      console.log('Producto añadido al carrito:', selectedProduct);
+    } else {
+      console.error(
+        'El producto no tiene una propiedad nombreProducto definida',
+      );
+      // Puedes mostrar un mensaje de error al usuario o tomar alguna otra acción aquí
+    }
   };
 
   return (
@@ -102,6 +112,7 @@ const DescripcionProducto = ({route, navigation}) => {
             style={styles.cartIcon}
           />
           <Text style={styles.buttonText}>Agregar al Carrito</Text>
+          {/* El estilo correcto aquí */}
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.messageButton}

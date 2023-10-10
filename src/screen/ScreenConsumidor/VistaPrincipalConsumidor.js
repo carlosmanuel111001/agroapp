@@ -85,9 +85,14 @@ const VistaPrincipalConsumidor = ({navigation}) => {
     }
   };
   const handleCardClick = product => {
-    navigation.navigate('DescripcionProducto', {
-      selectedProduct: product,
-    });
+    if (product && product.id) {
+      console.log(product); // Agrega este console.log para verificar el objeto product
+      navigation.navigate('DescripcionProducto', {
+        selectedProduct: product,
+      });
+    } else {
+      console.error('El producto no tiene un ID válido.');
+    }
   };
 
   const handleLogOut = () => {

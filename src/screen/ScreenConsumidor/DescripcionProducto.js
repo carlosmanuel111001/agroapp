@@ -6,6 +6,7 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import {CartContext} from '../ScreenCompartidas/CarritoContext';
 
@@ -37,19 +38,18 @@ const DescripcionProducto = ({route, navigation}) => {
 
   // En tu componente DescripcionProducto
   const handleAddToCart = () => {
-    console.log('Botón "Agregar al Carrito" presionado');
+    setCart(prevCart => [...prevCart, selectedProduct]);
 
-    if (selectedProduct && selectedProduct.nombreProducto) {
-      // El objeto selectedProduct existe y tiene la propiedad nombreProducto
-      // Ahora puedes agregar el producto al carrito
-      setCart(prevCart => [...prevCart, selectedProduct]);
-      console.log('Producto añadido al carrito:', selectedProduct);
-    } else {
-      console.error(
-        'El producto no tiene una propiedad nombreProducto definida',
-      );
-      // Puedes mostrar un mensaje de error al usuario o tomar alguna otra acción aquí
-    }
+    Alert.alert(
+      'Producto Agregado',
+      'El producto ha sido agregado a tu carrito de compras',
+      [
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('VistaPrincipalConsumidor'),
+        },
+      ],
+    );
   };
 
   return (

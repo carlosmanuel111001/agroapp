@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
 import {CartContext} from '../ScreenCompartidas/CarritoContext';
 
@@ -60,6 +61,19 @@ const DetalleCarrito = ({route, navigation}) => {
 
   const handlePago = () => {
     navigation.navigate('RealizarPago', {name: 'Nombre del Agricultor'});
+  };
+  const handleAddToCart = producto => {
+    setCart(prevCart => [...prevCart, producto]); // Añade el producto al carrito
+    Alert.alert(
+      'Producto añadido',
+      'El producto ha sido añadido al carrito correctamente.',
+      [
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('VistaPrincipalConsumidor'), // Asume que tu vista principal se llama 'VistaPrincipalConsumidor'
+        },
+      ],
+    );
   };
 
   return (

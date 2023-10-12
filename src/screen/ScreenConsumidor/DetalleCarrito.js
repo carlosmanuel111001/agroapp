@@ -12,7 +12,6 @@ import {CartContext} from '../ScreenCompartidas/CarritoContext';
 
 const DetalleCarrito = ({route, navigation}) => {
   const {cart, setCart} = useContext(CartContext);
-  const producto = route.params.productoSeleccionado;
 
   const agricultorDefault = {
     id: 1, // ID del producto
@@ -22,10 +21,20 @@ const DetalleCarrito = ({route, navigation}) => {
   };
 
   const agricultorInfo = route.params.agricultorInfo || agricultorDefault;
-  const totalCost = cart.reduce(
-    (acc, prod) => acc + prod.precio * prod.cantidad,
-    0,
-  );
+  const totalCost = cart.reduce((acc, prod) => {
+    let precio = Number(prod.precioProducto) || 0;
+    let cantidadSeleccionada = Number(prod.cantidadSeleccionada) || 0;
+
+    return acc + precio * cantidadSeleccionada;
+  }, 0);
+  cart.forEach(prod => {
+    if (
+      typeof prod.precioProducto !== 'number' ||
+      typeof prod.cantidadSeleccionada !== 'number'
+    ) {
+      console.error('Producto con datos inválidos:', prod);
+    }
+  });
 
   const handleChat = () => {
     alert('Funcionalidad de chat en desarrollo. ¡Pronto estará disponible!');
@@ -34,8 +43,12 @@ const DetalleCarrito = ({route, navigation}) => {
   const handleDecrease = id => {
     setCart(prevCart => {
       return prevCart.map(producto => {
-        if (producto.id === id && producto.cantidad > 1) {
-          return {...producto, cantidad: producto.cantidad - 1};
+        if (producto.id === id && producto.cantidadSeleccionada > 0) {
+          console.log('Decrementando', producto.cantidadSeleccionada);
+          return {
+            ...producto,
+            cantidadSeleccionada: producto.cantidadSeleccionada - 1,
+          };
         }
         return producto;
       });
@@ -46,7 +59,11 @@ const DetalleCarrito = ({route, navigation}) => {
     setCart(prevCart => {
       return prevCart.map(producto => {
         if (producto.id === id) {
-          return {...producto, cantidad: producto.cantidad + 1};
+          console.log('Incrementando', producto.cantidadSeleccionada);
+          return {
+            ...producto,
+            cantidadSeleccionada: producto.cantidadSeleccionada + 1,
+          };
         }
         return producto;
       });
@@ -58,22 +75,28 @@ const DetalleCarrito = ({route, navigation}) => {
       return prevCart.filter(producto => producto.id !== id);
     });
   };
-
   const handlePago = () => {
     navigation.navigate('RealizarPago', {name: 'Nombre del Agricultor'});
   };
-  const handleAddToCart = producto => {
-    setCart(prevCart => [...prevCart, producto]); // Añade el producto al carrito
+
+  const confirmRemove = id => {
+    // Mostrar una ventana de alerta
     Alert.alert(
-      'Producto añadido',
-      'El producto ha sido añadido al carrito correctamente.',
+      'Eliminar producto', // Título de la ventana
+      '¿Estás seguro de eliminar este producto del carrito?', // Mensaje
       [
+        // Botones en la ventana de alerta
+        {text: 'No', style: 'cancel'},
         {
-          text: 'OK',
-          onPress: () => navigation.navigate('VistaPrincipalConsumidor'), // Asume que tu vista principal se llama 'VistaPrincipalConsumidor'
+          text: 'Sí',
+          onPress: () => handleRemove(id), // Si el usuario confirma, se llama a handleRemove
         },
       ],
+      {cancelable: true}, // Esto permite que el usuario cancele tocando fuera de la ventana
     );
+  };
+  const handleNavigateToMain = () => {
+    navigation.navigate('VistaPrincipalConsumidor'); // Cambia 'VistaPrincipal' con el nombre correcto de tu vista principal si es diferente.
   };
 
   return (
@@ -88,12 +111,22 @@ const DetalleCarrito = ({route, navigation}) => {
           />
         </TouchableOpacity>
         <Text style={styles.tituloEncabezado}>Detalle del Carrito</Text>
-        <TouchableOpacity style={styles.botonMensaje} onPress={handleChat}>
-          <Image
-            source={require('../assets/mensaje.png')}
-            style={styles.iconoMensaje}
-          />
-        </TouchableOpacity>
+        <View style={styles.iconosContainer}>
+          <TouchableOpacity style={styles.botonMensaje} onPress={handleChat}>
+            <Image
+              source={require('../assets/mensaje.png')}
+              style={styles.iconoMensaje}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.botonAgregarMas}
+            onPress={handleNavigateToMain}>
+            <Image
+              source={require('../assets/mas.png')}
+              style={styles.iconoAgregarMas}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
       <View style={styles.tarjetaAgricultor}>
         <Text style={styles.nombreAgricultor}>{agricultorInfo.nombre}</Text>
@@ -108,20 +141,28 @@ const DetalleCarrito = ({route, navigation}) => {
         keyExtractor={item => item.id}
         renderItem={({item}) => (
           <View style={styles.itemProducto}>
-            <Text style={styles.nombreProducto}>{item.nombre}</Text>
+            <Image source={{uri: item.imagen}} style={styles.productImage} />
+            <Text style={styles.nombreProducto}>{item.nombreProducto}</Text>
+            <Text style={styles.precioProducto}>
+              Precio: ${item.precioProducto}
+            </Text>
+            <Text style={styles.cantidadDisponibleTexto}>
+              Cantidad disponible: {item.cantidadProducto}
+            </Text>
+
             <View style={styles.controlesProducto}>
               <TouchableOpacity onPress={() => handleDecrease(item.id)}>
                 <Text style={styles.controlTexto}>-</Text>
               </TouchableOpacity>
               <Text style={styles.detallesProducto}>
-                Cantidad: {item.cantidad} - ${item.precio * item.cantidad}
+                Cantidad seleccionada: {item.cantidadSeleccionada}
               </Text>
               <TouchableOpacity onPress={() => handleIncrease(item.id)}>
                 <Text style={styles.controlTexto}>+</Text>
               </TouchableOpacity>
             </View>
             <TouchableOpacity
-              onPress={() => handleRemove(item.id)}
+              onPress={() => confirmRemove(item.id)}
               style={styles.botonEliminar}>
               <Text style={styles.textoEliminar}>Eliminar</Text>
             </TouchableOpacity>
@@ -172,6 +213,10 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
   },
+  iconosContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   botonChatContainer: {
     marginLeft: 10,
   },
@@ -190,11 +235,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     borderRadius: 8,
     elevation: 1,
-  },
-  nombreProducto: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#212121',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   controlesProducto: {
     flexDirection: 'row',
@@ -202,22 +244,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   controlTexto: {
-    fontSize: 20,
+    fontSize: 24,
     color: '#212121',
     marginHorizontal: 10,
+    padding: 5, // Espacio interior
+    backgroundColor: '#EAEDED', // Un color de fondo claro
+    borderRadius: 8, // Bordes redondeados
+    elevation: 2, // Sombra en Android
+    shadowOffset: {width: 1, height: 1}, // Sombra en iOS
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   detallesProducto: {
     marginTop: 5,
-    fontSize: 14,
-    color: '#757575',
+    fontSize: 15, // Aumentamos un poco el tamaño
+    fontWeight: '600', // Semi-negrita
+    color: '#333', // Un color oscuro pero no totalmente negro
   },
   botonEliminar: {
     marginTop: 10,
+    backgroundColor: '#FF4747', // Color rojo para alerta
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8, // Bordes redondeados
+    elevation: 2, // Sombra para Android
+    shadowOffset: {width: 1, height: 1}, // Sombra para iOS
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
+
   textoEliminar: {
-    color: 'red',
+    color: 'white', // Cambiando a blanco para que contraste con el fondo rojo
+    fontWeight: 'bold', // Texto en negrita
     textAlign: 'center',
   },
+
   totalCost: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -258,18 +321,63 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   botonMensaje: {
-    position: 'absolute',
-    bottom: 10,
-    right: 20,
+    marginRight: 10, // añade un margen a la derecha para separar los íconos
     backgroundColor: '#4CAF50',
     borderRadius: 30,
     padding: 10,
-    elevation: 5,
+    elevation: 10,
   },
   iconoMensaje: {
-    width: 30,
-    height: 30,
+    width: 24,
+    height: 24,
     tintColor: '#FFFFFF',
+  },
+  productImage: {
+    width: 80,
+    height: 80,
+    resizeMode: 'contain',
+    marginBottom: 10, // añade un margen si deseas separar la imagen del nombre del producto
+  },
+  nombreProducto: {
+    fontSize: 18, // Aumentamos el tamaño
+    fontWeight: 'bold', // Reforzamos la negrita
+    color: '#212121', // Un color oscuro
+    marginBottom: 5,
+  },
+  cantidadDisponible: {
+    fontSize: 14,
+    fontWeight: 'normal',
+    color: '#212121',
+    marginTop: 5,
+    marginBottom: 5,
+  },
+  cantidadProducto: {
+    fontSize: 14,
+    color: '#757575',
+  },
+  precioProducto: {
+    fontSize: 16,
+    fontWeight: 'bold', // Lo ponemos en negrita para que destaque
+    color: '#4CAF50', // Un tono verde oscuro que sugiere valor
+    marginBottom: 5,
+  },
+
+  cantidadDisponibleTexto: {
+    marginTop: 5,
+    fontSize: 14,
+    color: '#757575', // Color más sutil
+  },
+  // Estilos para el botón de mensaje
+  // Estilos para el nuevo botón y su imagen
+  botonAgregarMas: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 30,
+    padding: 10,
+  },
+  iconoAgregarMas: {
+    width: 24,
+    height: 24,
+    tintColor: 'black',
   },
 });
 

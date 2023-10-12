@@ -10,52 +10,46 @@ export const CartProvider = ({children}) => {
   const CART_STORAGE_KEY = 'userCart';
 
   useEffect(() => {
-    // Cargar el carrito desde AsyncStorage cuando la app se inicia
-    const loadCart = async () => {
+    const loadCartFromStorage = async () => {
       try {
-        const savedCart = await AsyncStorage.getItem('userCart');
-        if (savedCart !== null) {
-          setCart(JSON.parse(savedCart));
+        const storedCart = await AsyncStorage.getItem(CART_STORAGE_KEY);
+        if (storedCart !== null) {
+          setCart(JSON.parse(storedCart));
         }
       } catch (error) {
-        console.error('Error al cargar el carrito', error);
+        console.error('Error al cargar el carrito:', error);
       }
     };
 
-    loadCart();
+    loadCartFromStorage();
   }, []);
 
-  const handleSetCart = newCart => {
-    let updatedCart;
+  // Este useEffect observa los cambios en el carrito y los almacena.
+  useEffect(() => {
+    if (!cart || cart.length === 0) return;
+    const storeCart = async () => {
+      if (cart === undefined || cart === null || cart.length === 0) {
+        console.warn(
+          'Intento de guardar carrito indefinido/nulo/vacío. Eliminando la clave en su lugar.',
+        );
+        await AsyncStorage.removeItem(CART_STORAGE_KEY);
+      } else {
+        await AsyncStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+      }
+    };
 
+    storeCart().catch(err => {
+      console.error('Error al guardar el carrito:', err);
+    });
+  }, [cart]);
+
+  const handleSetCart = newCart => {
     if (typeof newCart === 'function') {
-      updatedCart = newCart(cart); // Si newCart es una función, la llamamos con el carrito actual.
+      setCart(newCart);
     } else if (typeof newCart !== 'object' || !Array.isArray(newCart)) {
       console.warn('El valor proporcionado para setCart no es un arreglo.');
-      return;
     } else {
-      updatedCart = newCart; // Si no es una función, simplemente usamos el valor proporcionado.
-    }
-
-    storeCart(updatedCart)
-      .then(() => {
-        setCart(updatedCart);
-      })
-      .catch(err => {
-        console.error('Error guardando el carrito:', err);
-      });
-  };
-
-  const storeCart = async newCart => {
-    console.log('storeCart called with:', newCart);
-
-    if (newCart === undefined || newCart === null) {
-      console.warn(
-        'Attempt to store undefined/null in userCart. Removing key instead.',
-      );
-      await AsyncStorage.removeItem('userCart');
-    } else {
-      await AsyncStorage.setItem('userCart', JSON.stringify(newCart));
+      setCart(newCart);
     }
   };
 

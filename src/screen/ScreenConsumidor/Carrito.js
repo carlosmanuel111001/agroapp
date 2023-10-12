@@ -13,12 +13,12 @@ import {CartContext} from '../ScreenCompartidas/CarritoContext';
 const CarritoDeCompras = ({route, navigation}) => {
   const carritoContext = useContext(CartContext);
   const carrito = carritoContext.cart;
-  useEffect(() => {
-    console.log('Nombres de los productos en el carrito:');
-    carrito.forEach(item => {
-      console.log(item.nombreProducto);
-    });
-  }, [carrito]);
+  carrito.forEach(item => {
+    if (!item || typeof item.id !== 'string' || !item.nombreProducto) {
+      console.error('Producto en el carrito con datos inválidos:', item);
+      // Aquí puedes tomar medidas como eliminar el producto del carrito
+    }
+  });
 
   return (
     <View style={styles.container}>

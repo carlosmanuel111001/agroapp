@@ -38,7 +38,10 @@ const DescripcionProducto = ({route, navigation}) => {
 
   // En tu componente DescripcionProducto
   const handleAddToCart = () => {
-    setCart(prevCart => [...prevCart, selectedProduct]);
+    // Crear una copia de selectedProduct
+    const productToAdd = {...selectedProduct, cantidadSeleccionada: 0};
+
+    setCart(prevCart => [...prevCart, productToAdd]);
 
     Alert.alert(
       'Producto Agregado',
@@ -51,7 +54,6 @@ const DescripcionProducto = ({route, navigation}) => {
       ],
     );
   };
-
   return (
     <ScrollView
       style={styles.container}

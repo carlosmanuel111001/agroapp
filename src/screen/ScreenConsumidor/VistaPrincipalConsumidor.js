@@ -5,9 +5,8 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   Image,
-  FlatList,
+  SectionList,
   Dimensions,
   Alert,
 } from 'react-native';
@@ -64,6 +63,21 @@ const VistaPrincipalConsumidor = ({navigation}) => {
     // Desuscribirse del listener cuando el componente se desmonte
     return () => desuscribirse();
   }, []);
+  const agruparProductos = productos => {
+    let grupos = [];
+    for (let i = 0; i < productos.length; i += 3) {
+      grupos.push(productos.slice(i, i + 3));
+    }
+    return grupos;
+  };
+  const mitad = Math.ceil(productos.length / 2);
+  const productosCercaDeTi = agruparProductos(productos.slice(0, mitad));
+  const productosDeInteres = agruparProductos(productos.slice(mitad));
+
+  const secciones = [
+    {title: 'Cerca de ti', data: productosCercaDeTi},
+    {title: 'De Interés', data: productosDeInteres},
+  ];
   const handleMenuPress = () => {
     navigation.navigate('OpcionesConsumidor');
   };
@@ -86,9 +100,11 @@ const VistaPrincipalConsumidor = ({navigation}) => {
   };
   const handleCardClick = product => {
     if (product && product.id) {
-      console.log(product); // Agrega este console.log para verificar el objeto product
       navigation.navigate('DescripcionProducto', {
-        selectedProduct: product,
+        selectedProduct: {
+          ...product,
+          productPrice: parseFloat(product.precioProducto), // Convierte el precio a número
+        },
       });
     } else {
       console.error('El producto no tiene un ID válido.');
@@ -120,17 +136,10 @@ const VistaPrincipalConsumidor = ({navigation}) => {
       {cancelable: false},
     );
   };
-  const handleCartPress = () => {
-    navigation.navigate('Carrito');
-  };
   const cartItemsCount = 5;
 
-  const mitad = Math.ceil(productos.length / 2);
-  const productosCercaDeTi = productos.slice(0, mitad);
-  const productosDeInteres = productos.slice(mitad);
-
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       {/* Encabezado */}
       <View style={styles.headerContainer}>
         <TouchableOpacity onPress={handleMenuPress}>
@@ -175,46 +184,26 @@ const VistaPrincipalConsumidor = ({navigation}) => {
           />
         </TouchableOpacity>
       </View>
-
-      {/* Sección "Cerca de ti" */}
-      <View style={styles.section}>
-        <Text style={styles.sectionHeader}>Cerca de ti</Text>
-        <FlatList
-          data={productosCercaDeTi}
-          numColumns={columns}
-          keyExtractor={(item, index) => 'CercaDeTi-' + item.id.toString()}
-          renderItem={({item}) => (
-            <FilaDeTarjetas
-              productos={[item]}
-              handleCardClick={handleCardClick}
-            />
-          )}
-        />
-      </View>
-
-      {/* Sección "De Interés" */}
-      <View style={styles.section}>
-        <Text style={styles.sectionHeader}>De Interés</Text>
-        <FlatList
-          data={productosDeInteres}
-          numColumns={columns}
-          keyExtractor={(item, index) => 'DeInteres-' + item.id.toString()}
-          renderItem={({item}) => (
-            <FilaDeTarjetas
-              productos={[item]}
-              handleCardClick={handleCardClick}
-            />
-          )}
-        />
-      </View>
-
+      <SectionList
+        sections={secciones}
+        keyExtractor={(item, index) => item[0].id + index} // Cambio aquí, usando el id del primer producto del grupo
+        renderItem={({item}) => (
+          <FilaDeTarjetas
+            productos={item} // Pasando el grupo completo de productos
+            handleCardClick={handleCardClick}
+          />
+        )}
+        renderSectionHeader={({section: {title}}) => (
+          <Text style={styles.sectionHeader}>{title}</Text>
+        )}
+      />
       {/* Botón de salida */}
       <View style={styles.footer}>
         <TouchableOpacity onPress={handleLogOut} style={styles.logOutButton}>
           <Text style={styles.logOutText}>Salir</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+    </View>
   );
 };
 const windowWidth = Dimensions.get('window').width;
@@ -230,9 +219,10 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   sectionHeader: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 5,
+    backgroundColor: '#f7f7f7',
+    padding: 10,
   },
   footer: {
     marginVertical: 20,

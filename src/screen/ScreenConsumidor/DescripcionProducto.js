@@ -36,10 +36,14 @@ const DescripcionProducto = ({route, navigation}) => {
     navigation.navigate('DetalleMensaje', {});
   };
 
-  // En tu componente DescripcionProducto
   const handleAddToCart = () => {
     // Crear una copia de selectedProduct
-    const productToAdd = {...selectedProduct, cantidadSeleccionada: 0};
+    const productToAdd = {
+      ...selectedProduct,
+      cantidadSeleccionada: 1, // Puse 1 porque entiendo que cuando agregas el producto por primera vez, quieres una cantidad de 1.
+      productPrice: parseFloat(selectedProduct.productPrice),
+      cantidadProducto: parseFloat(selectedProduct.cantidadProducto),
+    };
 
     setCart(prevCart => [...prevCart, productToAdd]);
 

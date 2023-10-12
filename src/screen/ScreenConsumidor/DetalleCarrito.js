@@ -22,12 +22,17 @@ const DetalleCarrito = ({route, navigation}) => {
 
   const agricultorInfo = route.params.agricultorInfo || agricultorDefault;
   const totalCost = cart.reduce((acc, prod) => {
-    let precio = Number(prod.precioProducto) || 0;
-    let cantidadSeleccionada = Number(prod.cantidadSeleccionada) || 0;
+    let precio = parseFloat(prod.precioProducto) || 0;
+    let cantidadSeleccionada = Number(prod.cantidadSeleccionada) || 1;
 
     return acc + precio * cantidadSeleccionada;
   }, 0);
   cart.forEach(prod => {
+    // Asegurándose de que las propiedades sean números
+    prod.precioProducto = parseFloat(prod.precioProducto);
+    prod.cantidadSeleccionada = parseFloat(prod.cantidadSeleccionada);
+
+    // Ahora validamos el producto
     if (
       typeof prod.precioProducto !== 'number' ||
       typeof prod.cantidadSeleccionada !== 'number'
@@ -59,7 +64,6 @@ const DetalleCarrito = ({route, navigation}) => {
     setCart(prevCart => {
       return prevCart.map(producto => {
         if (producto.id === id) {
-          console.log('Incrementando', producto.cantidadSeleccionada);
           return {
             ...producto,
             cantidadSeleccionada: producto.cantidadSeleccionada + 1,
@@ -175,7 +179,7 @@ const DetalleCarrito = ({route, navigation}) => {
       </View>
 
       <TouchableOpacity style={styles.botonPagar} onPress={handlePago}>
-        <Text style={styles.textoBotonPagar}>Pagar</Text>
+        <Text style={styles.textoBotonPagar}>Realizar Pedido</Text>
       </TouchableOpacity>
     </View>
   );

@@ -103,7 +103,8 @@ const VistaPrincipalConsumidor = ({navigation}) => {
       navigation.navigate('DescripcionProducto', {
         selectedProduct: {
           ...product,
-          productPrice: parseFloat(product.precioProducto), // Convierte el precio a número
+          productPrice: parseFloat(product.precioProducto),
+          cantidadProducto: parseFloat(product.cantidadProducto), // Convierte cantidadProducto a número
         },
       });
     } else {

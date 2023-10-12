@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import {CartContext} from '../ScreenCompartidas/CarritoContext';
+import firestore from '@react-native-firebase/firestore';
 
 const DetalleCarrito = ({route, navigation}) => {
   const {cart, setCart} = useContext(CartContext);
@@ -79,8 +80,9 @@ const DetalleCarrito = ({route, navigation}) => {
       return prevCart.filter(producto => producto.id !== id);
     });
   };
-  const handlePago = () => {
-    navigation.navigate('RealizarPago', {name: 'Nombre del Agricultor'});
+  const handlePedido = () => {
+    submitOrderToFirestore();
+    navigation.navigate('RealizarPaedido', {name: 'Nombre del Agricultor'});
   };
 
   const confirmRemove = id => {
@@ -101,6 +103,26 @@ const DetalleCarrito = ({route, navigation}) => {
   };
   const handleNavigateToMain = () => {
     navigation.navigate('VistaPrincipalConsumidor'); // Cambia 'VistaPrincipal' con el nombre correcto de tu vista principal si es diferente.
+  };
+  // Funcion que envia los datos del carrito a firestore
+  const submitOrderToFirestore = async () => {
+    try {
+      await firestore()
+        .collection('orders')
+        .add({
+          cartItems: cart,
+          totalCost: totalCost,
+          agricultorInfo: agricultorInfo,
+          date: firestore.Timestamp.fromDate(new Date()),
+        });
+      Alert.alert('Pedido enviado', 'Tu pedido ha sido enviado con éxito');
+    } catch (error) {
+      console.error('Error al enviar el pedido a Firestore:', error);
+      Alert.alert(
+        'Error',
+        'Hubo un error al enviar tu pedido. Por favor, intenta nuevamente.',
+      );
+    }
   };
 
   return (
@@ -178,7 +200,7 @@ const DetalleCarrito = ({route, navigation}) => {
         <Text style={styles.totalCost}>Total: ${totalCost}</Text>
       </View>
 
-      <TouchableOpacity style={styles.botonPagar} onPress={handlePago}>
+      <TouchableOpacity style={styles.botonPagar} onPress={handlePedido}>
         <Text style={styles.textoBotonPagar}>Realizar Pedido</Text>
       </TouchableOpacity>
     </View>

@@ -82,7 +82,9 @@ const DetalleCarrito = ({route, navigation}) => {
   };
   const handlePedido = () => {
     submitOrderToFirestore();
-    navigation.navigate('RealizarPaedido', {name: 'Nombre del Agricultor'});
+    navigation.navigate('VistaPrincipalConsumidor', {
+      name: 'Nombre del Agricultor',
+    });
   };
 
   const confirmRemove = id => {

@@ -4,6 +4,8 @@ import vistaPrincipal from '../screen/ScreenAgricultor/vistaPrincipal';
 import RegistroProducto from '../screen/ScreenAgricultor/RegistroProducto';
 import EditarProducto from '../screen/ScreenAgricultor/EditarProducto';
 import VistaOpcionesAgricultor from '../screen/ScreenAgricultor/VistaOpcionesAgricultor';
+import GestionPedido from '../screen/ScreenAgricultor/GestionPedido';
+import DetallePedido from '../screen/ScreenAgricultor/DetallePedido';
 
 const AgricultorStack = createStackNavigator();
 
@@ -28,6 +30,8 @@ const AgricultorStackNavigator = () => {
         name="VistaOpcionesAgricultor"
         component={VistaOpcionesAgricultor}
       />
+      <AgricultorStack.Screen name="GestionPedido" component={GestionPedido} />
+      <AgricultorStack.Screen name="DetallePedido" component={DetallePedido} />
     </AgricultorStack.Navigator>
   );
 };

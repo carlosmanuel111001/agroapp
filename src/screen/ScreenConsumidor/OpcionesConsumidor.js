@@ -13,6 +13,9 @@ const VistaOpcionesConsumidor = () => {
     // Aquí puedes colocar la lógica para cerrar la sesión
     console.log('Cerrar sesión presionado');
   };
+  const handleGestionPedidoPress = () => {
+    navigation.navigate('ListaPedidos');
+  };
 
   const handleProfilePress = () => {
     navigation.navigate('PerfilConsumidor');
@@ -52,6 +55,24 @@ const VistaOpcionesConsumidor = () => {
             <TouchableOpacity style={styles.selectButton}>
               <Image
                 source={require('../assets/perfil.png')}
+                style={styles.selectImage}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={handleGestionPedidoPress}>
+        <View style={[styles.optionContainer, styles.separator]}>
+          <Image
+            source={require('../assets/gestion.png')} // asumiendo que tienes un ícono llamado pedido.png para esta opción
+            style={styles.optionImage}
+          />
+          <Text style={styles.optionText}>Gestión de Pedido</Text>
+          <View style={styles.rightOptionContainer}>
+            <TouchableOpacity style={styles.selectButton}>
+              <Image
+                source={require('../assets/gestion.png')} // asumiendo que tienes un ícono llamado pedido.png para esta opción
                 style={styles.selectImage}
               />
             </TouchableOpacity>

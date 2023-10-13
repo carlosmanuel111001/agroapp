@@ -1,11 +1,36 @@
 import React from 'react';
-import {View, Text, StyleSheet, Image, Button} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  Button,
+  TouchableOpacity,
+} from 'react-native';
 import VistaPrincipalConsumidor from './VistaPrincipalConsumidor';
+import {useNavigation} from '@react-navigation/native';
 
 const DetallePedido = ({route}) => {
+  const navigation = useNavigation();
   const {pedido} = route.params;
+
   return (
     <View style={styles.container}>
+      {/* Encabezado */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}>
+          <Image
+            source={require('../assets/regreso.png')}
+            style={styles.backImage}
+          />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Detalle del Pedido</Text>
+        <View style={styles.backButton}></View>
+        {/* Placeholder para centrar el título */}
+      </View>
+
       <View style={styles.card}>
         {pedido.estado === 'aceptado' ? (
           <>
@@ -54,6 +79,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f4f4f4',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    padding: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 5,
+  },
+  headerTitle: {
+    flex: 1, // Esto permitirá que el título tome el espacio disponible.
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+    textAlign: 'center', // Esto centrará el texto.
+  },
+  backButton: {
+    width: 25,
+    alignItems: 'center',
+  },
+  backImage: {
+    width: 25,
+    height: 25,
   },
   card: {
     margin: 20,

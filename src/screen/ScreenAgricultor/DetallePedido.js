@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -8,36 +8,103 @@ import {
   Image,
 } from 'react-native';
 import {useRoute} from '@react-navigation/native';
+import firebase from '@react-native-firebase/app';
 
 const DetallePedido = ({navigation}) => {
   const route = useRoute();
   const currentData = route.params?.currentData;
+  const [docData, setDocData] = useState(null);
+  useEffect(() => {
+    const docRef = firebase
+      .firestore()
+      .collection('orders')
+      .doc(currentData.id);
+
+    const fetchData = async () => {
+      try {
+        const doc = await docRef.get();
+        if (doc.exists) {
+          setDocData(doc.data());
+        } else {
+          console.warn('No such document!');
+        }
+      } catch (error) {
+        console.error('Error fetching document:', error);
+      }
+    };
+
+    fetchData();
+  }, [currentData.id]);
 
   console.log('Received data using useRoute:', currentData);
-
   const handleAccept = () => {
-    Alert.alert(
-      'Pedido Aceptado', // Título del Alert
-      'El pedido ha sido aceptado', // Mensaje del Alert
-      [
-        {
-          text: 'OK',
-          onPress: () => navigation.goBack(), // Una vez que el usuario haga clic en "OK", volveremos a la pantalla anterior
-        },
-      ],
-    );
+    const docId = currentData.id; // Asume que currentData está definido y tiene una propiedad id.
+    console.log('Intentando acceder al documento con ID: ', docId);
+
+    const docRef = firebase.firestore().collection('orders').doc(docId);
+
+    docRef
+      .get()
+      .then(doc => {
+        if (doc.exists) {
+          console.log('El documento existe, actualizando...');
+          return docRef.update({estado: 'aceptado'});
+        } else {
+          console.warn('Documento no existe en Firestore.');
+          throw new Error('Documento no encontrado');
+        }
+      })
+      .then(() => {
+        Alert.alert('Pedido Aceptado', 'El pedido ha sido aceptado', [
+          {
+            text: 'OK',
+            onPress: () => navigation.goBack(),
+          },
+        ]);
+      })
+      .catch(error => {
+        console.error('Error: ', error);
+        Alert.alert(
+          'Error',
+          'Hubo un error al aceptar el pedido. Por favor intenta de nuevo.',
+        );
+      });
   };
+
   const handleDecline = () => {
-    Alert.alert(
-      'Pedido Rechazado', // Título del Alert
-      'El pedido ha sido rechazado', // Mensaje del Alert
-      [
-        {
-          text: 'OK',
-          onPress: () => navigation.goBack(), // Una vez que el usuario haga clic en "OK", volveremos a la pantalla anterior
-        },
-      ],
-    );
+    const docRef = firebase
+      .firestore()
+      .collection('orders')
+      .doc(currentData.id);
+
+    docRef
+      .get()
+      .then(doc => {
+        if (doc.exists) {
+          docRef
+            .update({estado: 'rechazado'})
+            .then(() => {
+              Alert.alert('Pedido Rechazado', 'El pedido ha sido rechazado', [
+                {
+                  text: 'OK',
+                  onPress: () => navigation.goBack(),
+                },
+              ]);
+            })
+            .catch(error => {
+              console.error('Error al actualizar el pedido: ', error);
+              Alert.alert(
+                'Error',
+                'Hubo un error al rechazar el pedido. Por favor intenta de nuevo.',
+              );
+            });
+        } else {
+          console.warn('Documento no existe!');
+        }
+      })
+      .catch(error => {
+        console.error('Error al obtener el documento: ', error);
+      });
   };
 
   return (

@@ -1,22 +1,39 @@
-// PantallaRol.js
-
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, Image} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import auth from '@react-native-firebase/auth';
 
 const PantallaRol = () => {
   const navigation = useNavigation();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  console.log('Current value of isAuthenticated:', isAuthenticated);
+
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged(authUser => {
+      console.log('Auth user:', authUser);
+      setIsAuthenticated(!!authUser);
+    });
+
+    return subscriber; // desuscripción en desmontaje
+  }, []);
 
   const handleAgricultorPress = () => {
     navigation.navigate('Agricultor', {
       screen: 'InicioSesionAgricultor',
+      params: {userRole: 'agricultor'},
     });
   };
 
   const handleConsumidorPress = () => {
-    navigation.navigate('Consumidor', {
-      screen: 'VistaPrincipalConsumidor',
-    });
+    if (isAuthenticated) {
+      // Lleva al usuario a la pantalla de Consumidor si está autenticado como Agricultor
+      navigation.navigate('Consumidor', {
+        screen: 'VistaPrincipalConsumidor',
+      });
+    } else {
+      navigation.navigate('DatosRegistro');
+    }
   };
 
   return (

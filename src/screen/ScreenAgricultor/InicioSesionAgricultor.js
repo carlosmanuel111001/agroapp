@@ -20,60 +20,71 @@ const InicioSesion = ({route}) => {
   const navigation = useNavigation();
 
   const handleLogin = () => {
+    console.log('handleLogin ha sido invocado'); // Mensaje para saber que inició la función
+
     firebase
       .auth()
       .signInWithEmailAndPassword(email, password)
-      .then(() => {
-        if (userRole === 'agricultor') {
-          navigation.navigate('Principal');
-        } else if (userRole === 'consumidor') {
-          navigation.navigate('ConsumidorNavigator', {
-            screen: 'VistaPrincipalConsumidor',
-          });
+      .then(userCredential => {
+        const user = userCredential.user;
+        console.log('Usuario autenticado con éxito:', user); // Imprimirá el objeto del usuario autenticado
+
+        // Verificar el rol del usuario en la base de datos.
+        return firebase
+          .database()
+          .ref(`agricultores/${user.uid}`)
+          .once('value');
+      })
+      .then(snapshot => {
+        console.log('Snapshot obtenido con éxito:', snapshot.val());
+        const userData = snapshot.val();
+
+        if (!userData) {
+          console.log(
+            'No se encontraron datos para el usuario en la base de datos',
+          );
+          throw new Error(
+            'No se encontraron datos para el usuario en la base de datos',
+          );
+        }
+
+        if (userData.rol === 'agricultor') {
+          console.log(
+            "Usuario es un agricultor. Intentando navegar a 'vistaPrincipal'...",
+          );
+          navigation.navigate('vistaPrincipal');
         } else {
-          console.warn('El valor de userRole no es válido: ', userRole);
+          console.log('Usuario no es un agricultor o no se encontró el rol');
+          throw new Error('Acceso denegado. No eres un agricultor.');
         }
       })
       .catch(error => {
+        console.log('Error general en handleLogin:', error);
         let mensajeError = '';
-        if (error.code === 'auth/email-already-in-use') {
-          mensajeError = '¡Esa dirección de correo ya está en uso!';
-        } else if (error.code === 'auth/invalid-email') {
-          mensajeError = '¡Esa dirección de correo es inválida!';
-        } else if (error.code === 'auth/user-not-found') {
-          mensajeError = 'No hay ningún usuario con ese correo electrónico.';
-        } else if (error.code === 'auth/wrong-password') {
-          mensajeError = 'La contraseña es incorrecta.';
-        } else {
-          mensajeError = 'Ocurrió un error al intentar ingresar.';
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            mensajeError = '¡Esa dirección de correo ya está en uso!';
+            break;
+          case 'auth/invalid-email':
+            mensajeError = '¡Esa dirección de correo es inválida!';
+            break;
+          case 'auth/user-not-found':
+            mensajeError = 'No hay ningún usuario con ese correo electrónico.';
+            break;
+          case 'auth/wrong-password':
+            mensajeError = 'La contraseña es incorrecta.';
+            break;
+          default:
+            mensajeError =
+              error.message || 'Ocurrió un error al intentar ingresar.';
         }
 
         Alert.alert('Error al ingresar', mensajeError, [{text: 'Aceptar'}]);
       });
   };
-
   const goToRegistro = () => {
     navigation.navigate('DatosRegistro');
-    firebase
-      .auth()
-      .createUserWithEmailAndPassword(email, password)
-      .then(() => {
-        navigation.navigate('DatosRegistro');
-      })
-      .catch(error => {
-        let mensajeError = '';
-        if (error.code === 'auth/email-already-in-use') {
-          mensajeError = '¡Esa dirección de correo ya está en uso!';
-        } else if (error.code === 'auth/invalid-email') {
-          mensajeError = '¡Esa dirección de correo es inválida!';
-        } else {
-          mensajeError = 'Ocurrió un error al intentar registrarse.';
-        }
-
-        Alert.alert('Error al registrarse', mensajeError, [{text: 'Aceptar'}]);
-      });
   };
-
   return (
     <ScrollView
       style={styles.scrollContainer}
@@ -133,7 +144,9 @@ const InicioSesion = ({route}) => {
               <Text style={styles.footerLink}>Olvidó su contraseña?</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={goToRegistro}>
-              <Text style={styles.footerLink}>Registrarse</Text>
+              <Text style={styles.registerText}>
+                ¿No tienes cuenta? Regístrate
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -238,6 +251,11 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     textDecorationLine: 'underline',
     fontSize: 15,
+  },
+  registerText: {
+    color: '#3498db',
+    textAlign: 'center',
+    marginTop: 5,
   },
 });
 

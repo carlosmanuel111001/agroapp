@@ -22,12 +22,9 @@ const DatosRegistro = () => {
   const [correo, setCorreo] = useState('');
   const [contraseña, setContraseña] = useState('');
   const [confirmContraseña, setConfirmContraseña] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [telefono, setTelefono] = useState('');
   const [direccion, setDireccion] = useState('');
   const [descripcion, setDescripcion] = useState('');
-  const [ubicacion, setUbicacion] = useState('');
-  const [aceptarTerminos, setAceptarTerminos] = useState(false);
   const navigation = useNavigation();
 
   const handleRegistro = async () => {
@@ -47,6 +44,37 @@ const DatosRegistro = () => {
         return;
       }
 
+      // Validación de correo electrónico
+      if (!isValidEmail(correo)) {
+        alert('Por favor, ingrese un correo electrónico válido.');
+        return;
+      }
+
+      // Validación de longitud mínima de contraseña
+      if (contraseña.length < 8) {
+        alert('La contraseña debe tener al menos 8 caracteres.');
+        return;
+      }
+
+      // Validación de formato de teléfono
+      if (!isValidPhoneNumber(telefono)) {
+        alert(
+          'Por favor, ingrese un número de teléfono en el formato +505 1234-5678',
+        );
+        return;
+      }
+
+      // Verificar si el correo electrónico ya está en uso
+      const userExists = await auth().fetchSignInMethodsForEmail(correo);
+
+      if (userExists && userExists.length > 0) {
+        // El correo electrónico ya está en uso
+        alert(
+          'Este correo electrónico ya está registrado. Por favor, inicia sesión o utiliza otro correo.',
+        );
+        return;
+      }
+
       // Registro de usuario con Firebase Authentication
       const userCredential = await auth().createUserWithEmailAndPassword(
         correo,
@@ -55,23 +83,44 @@ const DatosRegistro = () => {
       const user = userCredential.user;
 
       // Guardar datos adicionales en Firebase Database
-      await database().ref(`agricultores/${user.uid}`).set({
-        nombre,
-        apellidos,
-        imagen: imageData,
-        correo,
-        telefono,
-        direccion,
-        descripcion,
-        ubicacion,
-      });
-
+      await database()
+        .ref(`agricultores/${user.uid}`)
+        .set({
+          nombre,
+          apellidos,
+          imagen: imageData,
+          correo,
+          telefono,
+          direccion,
+          descripcion,
+          rol: 'agricultor',
+        })
+        .catch(error => {
+          console.error('Error al guardar datos en la base de datos:', error);
+        });
       alert('Registro exitoso!');
       navigation.navigate('InicioSesion');
     } catch (error) {
       console.error('Error al registrar:', error);
-      alert('Hubo un error al registrarse. Inténtelo de nuevo.');
+      if (error.code === 'auth/email-already-in-use') {
+        alert(
+          'Este correo electrónico ya está registrado. Por favor, inicia sesión o utiliza otro correo.',
+        );
+      } else {
+        alert('Hubo un error al registrarse. Inténtelo de nuevo.');
+      }
     }
+  };
+  // Función para validar el formato de correo electrónico
+  const isValidEmail = email => {
+    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i;
+    return emailRegex.test(email);
+  };
+
+  // Función para validar el formato del número de teléfono de Nicaragua
+  const isValidPhoneNumber = phone => {
+    const phoneRegex = /^\+505 \d{4}-\d{4}$/;
+    return phoneRegex.test(phone);
   };
 
   // Función para abrir el seleccionador de imágenes
@@ -181,7 +230,7 @@ const DatosRegistro = () => {
           <Text style={styles.label}>Teléfono</Text>
           <TextInput
             style={styles.input}
-            placeholder="+1 (123) 456-7890"
+            placeholder="+505 1234-5678"
             value={telefono}
             onChangeText={setTelefono}
           />

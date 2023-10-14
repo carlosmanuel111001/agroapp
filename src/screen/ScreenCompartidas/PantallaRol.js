@@ -9,7 +9,7 @@ const PantallaRol = () => {
 
   const handleAgricultorPress = () => {
     navigation.navigate('Agricultor', {
-      screen: 'vistaPrincipal',
+      screen: 'InicioSesionAgricultor',
     });
   };
 

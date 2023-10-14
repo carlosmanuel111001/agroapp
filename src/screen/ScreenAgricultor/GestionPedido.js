@@ -33,7 +33,6 @@ const GestionPedido = ({navigation}) => {
   const renderItem = ({item}) => (
     <TouchableOpacity
       onPress={() => {
-        console.log('Item to be sent:', item);
         navigation.navigate('DetallePedido', {currentData: item});
       }}>
       <View style={styles.row}>
@@ -59,19 +58,21 @@ const GestionPedido = ({navigation}) => {
 
   return (
     <View style={styles.container}>
+      {/* Encabezado */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={handleBackPress}
-          style={{padding: 10, zIndex: 10, elevation: 10}}>
+        <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
           <Image
             style={styles.exitIcon}
             source={require('../assets/regreso.png')}
           />
         </TouchableOpacity>
         <Text style={styles.headerText}>Registro de pedidos</Text>
+        <View style={styles.backButton}></View>
+        {/* Placeholder para centrar el título */}
       </View>
+
       <View style={styles.division} />
-      <View style={styles.container}>
+      <View style={styles.contentContainer}>
         <HeaderRow />
         <FlatList
           data={orders}
@@ -92,53 +93,63 @@ const styles = StyleSheet.create({
     height: 80,
     backgroundColor: '#5DDCAE',
     flexDirection: 'row',
-    alignItems: 'center', // Centra verticalmente
-    justifyContent: 'flex-start', // Alinea a la izquierda inicialmente
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingBottom: 10,
-    paddingHorizontal: 20, // Espacio horizontal para que el ícono y el texto no estén pegados a los bordes
+    paddingHorizontal: 20,
   },
   headerText: {
+    flex: 1,
     fontSize: 20,
     fontWeight: 'bold',
     color: '#1F2937',
-    position: 'absolute', // Absolutamente posicionado
-    left: 0, // Inicia desde la izquierda
-    right: 40, // Y termina en la derecha
-    textAlign: 'center', // Centra el texto dentro de su contenedor
+    textAlign: 'center',
   },
-  content: {
-    flex: 5,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
+  backButton: {
+    width: 40,
     alignItems: 'center',
   },
   exitIcon: {
     width: 24,
     height: 24,
-    marginRight: 20,
   },
-  // estilos de la tabla de la pagina principal
-
+  contentContainer: {
+    flex: 1,
+    padding: 10,
+  },
   headerRow: {
     flexDirection: 'row',
     backgroundColor: 'white',
     marginBottom: 10,
+    borderRadius: 10,
+    padding: 5,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 3,
   },
   headerCell: {
     flex: 1,
     padding: 8,
     fontWeight: 'bold',
     color: 'black',
+    textAlign: 'center',
   },
   row: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: 'black',
+    borderBottomColor: '#E5E7EB',
+    backgroundColor: 'white',
+    marginBottom: 10,
+    padding: 5,
+    borderRadius: 10,
   },
   cell: {
     flex: 1,
     padding: 8,
     color: 'black',
+    textAlign: 'center',
   },
 });
 export default GestionPedido;

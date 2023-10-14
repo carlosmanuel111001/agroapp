@@ -14,20 +14,17 @@ const DetallePedido = ({navigation}) => {
   const route = useRoute();
   const currentData = route.params?.currentData;
   const [docData, setDocData] = useState(null);
-  useEffect(() => {
-    const docRef = firebase
-      .firestore()
-      .collection('orders')
-      .doc(currentData.id);
 
+  useEffect(() => {
     const fetchData = async () => {
       try {
-        const doc = await docRef.get();
-        if (doc.exists) {
-          setDocData(doc.data());
-        } else {
-          console.warn('No such document!');
-        }
+        const doc = await firebase
+          .firestore()
+          .collection('orders')
+          .doc(currentData.id)
+          .get();
+        if (doc.exists) setDocData(doc.data());
+        else console.warn('No such document!');
       } catch (error) {
         console.error('Error fetching document:', error);
       }
@@ -36,151 +33,122 @@ const DetallePedido = ({navigation}) => {
     fetchData();
   }, [currentData.id]);
 
-  console.log('Received data using useRoute:', currentData);
-  const handleAccept = () => {
-    const docId = currentData.id; // Asume que currentData está definido y tiene una propiedad id.
-    console.log('Intentando acceder al documento con ID: ', docId);
-
-    const docRef = firebase.firestore().collection('orders').doc(docId);
-
-    docRef
-      .get()
-      .then(doc => {
-        if (doc.exists) {
-          console.log('El documento existe, actualizando...');
-          return docRef.update({estado: 'aceptado'});
-        } else {
-          console.warn('Documento no existe en Firestore.');
-          throw new Error('Documento no encontrado');
-        }
-      })
-      .then(() => {
-        Alert.alert('Pedido Aceptado', 'El pedido ha sido aceptado', [
-          {
-            text: 'OK',
-            onPress: () => navigation.goBack(),
-          },
-        ]);
-      })
-      .catch(error => {
-        console.error('Error: ', error);
-        Alert.alert(
-          'Error',
-          'Hubo un error al aceptar el pedido. Por favor intenta de nuevo.',
-        );
-      });
-  };
-
-  const handleDecline = () => {
-    const docRef = firebase
-      .firestore()
-      .collection('orders')
-      .doc(currentData.id);
-
-    docRef
-      .get()
-      .then(doc => {
-        if (doc.exists) {
-          docRef
-            .update({estado: 'rechazado'})
-            .then(() => {
-              Alert.alert('Pedido Rechazado', 'El pedido ha sido rechazado', [
-                {
-                  text: 'OK',
-                  onPress: () => navigation.goBack(),
-                },
-              ]);
-            })
-            .catch(error => {
-              console.error('Error al actualizar el pedido: ', error);
-              Alert.alert(
-                'Error',
-                'Hubo un error al rechazar el pedido. Por favor intenta de nuevo.',
-              );
-            });
-        } else {
-          console.warn('Documento no existe!');
-        }
-      })
-      .catch(error => {
-        console.error('Error al obtener el documento: ', error);
-      });
+  const updateOrderStatus = async status => {
+    try {
+      await firebase
+        .firestore()
+        .collection('orders')
+        .doc(currentData.id)
+        .update({estado: status});
+      const message =
+        status === 'aceptado' ? 'Pedido Aceptado' : 'Pedido Rechazado';
+      Alert.alert(message, `El pedido ha sido ${status}`, [
+        {text: 'OK', onPress: () => navigation.goBack()},
+      ]);
+    } catch (error) {
+      console.error('Error updating order:', error);
+      Alert.alert(
+        'Error',
+        `Hubo un error al ${status} el pedido. Por favor intenta de nuevo.`,
+      );
+    }
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.iconContainer}>
-          <Image
-            source={require('../assets/regreso.png')}
-            style={styles.iconImage}
-          />
-        </TouchableOpacity>
-        <Text style={styles.header}>Pedido: {currentData?.id}</Text>
-      </View>
-
-      {/* Datos del Cliente */}
-      <View style={styles.infoContainer}>
-        <Text style={styles.infoLabel}>Cliente:</Text>
-        <Text style={styles.infoData}>
-          {currentData?.agricultorInfo.nombre}
-        </Text>
-      </View>
-
-      <View style={styles.infoContainer}>
-        <Text style={styles.infoLabel}>Fecha:</Text>
-        {/* Aquí convertimos la fecha en un formato legible */}
-        <Text style={styles.infoData}>
-          {new Date(currentData?.date.seconds * 1000).toLocaleDateString()}
-        </Text>
-      </View>
-
-      {/* Tabla */}
-      <View style={styles.tableHeader}>
-        <Text style={styles.tableHeaderCell}>Cód</Text>
-        <Text style={styles.tableHeaderCell}>Cant</Text>
-        <Text style={styles.tableHeaderCell}>Prod</Text>
-        <Text style={styles.tableHeaderCell}>P. Unit.</Text>
-        <Text style={styles.tableHeaderCell}>Desc.</Text>
-        <Text style={styles.tableHeaderCell}>Total</Text>
-      </View>
-      {currentData.cartItems &&
-        currentData.cartItems.map((producto, index) => (
-          <View key={index} style={styles.tableRow}>
-            <Text style={styles.tableCell}>{producto.codigoProducto}</Text>
-            <Text style={styles.tableCell}>
-              {producto.cantidadSeleccionada}
-            </Text>
-            <Text style={styles.tableCell}>{producto.nombreProducto}</Text>
-            <Text style={styles.tableCell}>${producto.precioProducto}</Text>
-            <Text style={styles.tableCell}>${producto.descuentoProducto}</Text>
-            {/* Aquí calculamos el total por producto */}
-            <Text style={styles.tableCell}>
-              $
-              {producto.cantidadSeleccionada * producto.precioProducto -
-                producto.descuentoProducto}
-            </Text>
-          </View>
-        ))}
-      {/* Botones */}
-      <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-          style={[styles.button, styles.acceptButton]}
-          onPress={handleAccept}>
-          <Text style={styles.buttonText}>Aceptar Pedido</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.button, styles.declineButton]}
-          onPress={handleDecline}>
-          <Text style={styles.buttonText}>Rechazar Pedido</Text>
-        </TouchableOpacity>
-      </View>
+      <Header navigation={navigation} orderId={currentData?.id} />
+      <ClientData
+        clientInfo={currentData?.agricultorInfo}
+        orderDate={currentData?.date}
+      />
+      <ProductList cartItems={currentData?.cartItems} />
+      <ActionButtons
+        onAccept={() => updateOrderStatus('aceptado')}
+        onDecline={() => updateOrderStatus('rechazado')}
+      />
     </View>
   );
 };
+
+const Header = ({navigation, orderId}) => (
+  <View style={styles.headerContainer}>
+    <TouchableOpacity
+      onPress={() => navigation.goBack()}
+      style={styles.iconContainer}>
+      <Image
+        source={require('../assets/regreso.png')}
+        style={styles.iconImage}
+      />
+    </TouchableOpacity>
+    <Text style={styles.header}>Pedido: {orderId}</Text>
+  </View>
+);
+
+const ClientData = ({clientInfo, orderDate}) => (
+  <>
+    <DataContainer label="Cliente:" data={clientInfo?.nombre} />
+    <DataContainer
+      label="Fecha:"
+      data={new Date(orderDate?.seconds * 1000).toLocaleDateString()}
+    />
+  </>
+);
+
+const ProductList = ({cartItems}) => (
+  <>
+    <View style={styles.tableHeader}>
+      <Text style={styles.tableHeaderCell}>Cód</Text>
+      <Text style={styles.tableHeaderCell}>Cant</Text>
+      <Text style={styles.tableHeaderCell}>Prod</Text>
+      <Text style={styles.tableHeaderCell}>P. Unit.</Text>
+      <Text style={styles.tableHeaderCell}>Desc.</Text>
+      <Text style={styles.tableHeaderCell}>Total</Text>
+    </View>
+    {cartItems &&
+      cartItems.map((producto, index) => (
+        <View key={index} style={styles.tableRow}>
+          <Text style={styles.tableCell}>{producto.codigoProducto}</Text>
+          <Text style={styles.tableCell}>{producto.cantidadSeleccionada}</Text>
+          <Text style={styles.tableCell}>{producto.nombreProducto}</Text>
+          <Text style={styles.tableCell}>${producto.precioProducto}</Text>
+          <Text style={styles.tableCell}>${producto.descuentoProducto}</Text>
+          <Text style={styles.tableCell}>
+            $
+            {producto.cantidadSeleccionada * producto.precioProducto -
+              producto.descuentoProducto}
+          </Text>
+        </View>
+      ))}
+  </>
+);
+
+const ActionButtons = ({onAccept, onDecline}) => (
+  <View style={styles.buttonsContainer}>
+    <Button
+      action={onAccept}
+      style={styles.acceptButton}
+      title="Aceptar Pedido"
+    />
+    <Button
+      action={onDecline}
+      style={styles.declineButton}
+      title="Rechazar Pedido"
+    />
+  </View>
+);
+
+const Button = ({action, style, title}) => (
+  <TouchableOpacity style={[styles.button, style]} onPress={action}>
+    <Text style={styles.buttonText}>{title}</Text>
+  </TouchableOpacity>
+);
+
+const DataContainer = ({label, data}) => (
+  <View style={styles.infoContainer}>
+    <Text style={styles.infoLabel}>{label}</Text>
+    <Text style={styles.infoData}>{data}</Text>
+  </View>
+);
 
 const styles = StyleSheet.create({
   container: {

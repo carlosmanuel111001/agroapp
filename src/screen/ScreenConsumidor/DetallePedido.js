@@ -40,7 +40,7 @@ const DetallePedido = ({route}) => {
             </Text>
             <Button
               title="Pagar Ahora"
-              onPress={VistaPrincipalConsumidor}
+              onPress={() => navigation.navigate('VistaPrincipalConsumidor')}
               color="#4CAF50"
             />
           </>
@@ -52,7 +52,7 @@ const DetallePedido = ({route}) => {
             </Text>
             <Button
               title="Volver a la tienda"
-              onPress={VistaPrincipalConsumidor}
+              onPress={() => navigation.navigate('VistaPrincipalConsumidor')}
               color="#B71C1C"
             />
           </>

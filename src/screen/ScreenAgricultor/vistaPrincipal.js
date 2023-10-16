@@ -13,10 +13,11 @@ import {
 import firestore from '@react-native-firebase/firestore';
 import {useNavigation} from '@react-navigation/native';
 
-const VistaPrincipal = () => {
+const VistaPrincipal = ({route}) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [pedidoSearch, setPedidoSearch] = useState('');
   const [resultadosBusqueda, setResultadosBusqueda] = useState([]);
+  const {userId} = route.params;
 
   const navigation = useNavigation();
 
@@ -42,20 +43,20 @@ const VistaPrincipal = () => {
   useEffect(() => {
     const unsubscribe = firestore()
       .collection('Productos')
+      .where('userId', '==', userId)
       .onSnapshot(querySnapshot => {
         const productosData = [];
         querySnapshot.forEach(doc => {
           productosData.push({
             id: doc.id,
-            nombre: doc.data().nombreProducto, // Asegúrate de tener el campo correcto de nombre en tu base de datos
+            nombre: doc.data().nombreProducto,
           });
         });
         setProductos(productosData);
       });
 
-    // Cuando el componente se desmonta, deja de escuchar los cambios
     return () => unsubscribe();
-  }, []); // El array vacío como segundo argumento significa que este efecto se ejecutará solo una vez, similar a componentDidMount
+  }, [userId]); // El array vacío como segundo argumento significa que este efecto se ejecutará solo una vez, similar a componentDidMount
 
   const handleEditPress = productoId => {
     navigation.navigate('EditarProducto', {id: productoId});
@@ -119,6 +120,10 @@ const VistaPrincipal = () => {
   };
 
   const handleSearch = async () => {
+    if (pedidoSearch.trim() === '') {
+      Alert.alert('Atención', 'Por favor, ingrese el nombre del producto.');
+      return;
+    }
     console.log('Texto de búsqueda:', pedidoSearch);
 
     try {

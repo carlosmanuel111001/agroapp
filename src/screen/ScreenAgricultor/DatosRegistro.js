@@ -99,7 +99,7 @@ const DatosRegistro = () => {
           console.error('Error al guardar datos en la base de datos:', error);
         });
       alert('Registro exitoso!');
-      navigation.navigate('InicioSesion');
+      navigation.navigate('InicioSesionAgricultor');
     } catch (error) {
       console.error('Error al registrar:', error);
       if (error.code === 'auth/email-already-in-use') {

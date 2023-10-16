@@ -20,8 +20,9 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Geolocation from '@react-native-community/geolocation';
 import MapView, {Marker} from 'react-native-maps';
 import {PERMISSIONS, request, RESULTS} from 'react-native-permissions';
+import auth from '@react-native-firebase/auth';
 
-const RegistroProducto = () => {
+const RegistroProducto = ({route}) => {
   const navigation = useNavigation(); // Obtiene el objeto de navegación
 
   const [tipoProducto, setTipoProducto] = useState('');
@@ -83,6 +84,12 @@ const RegistroProducto = () => {
   };
 
   async function subirProducto() {
+    const userId = auth().currentUser ? auth().currentUser.uid : null;
+
+    if (!userId) {
+      Alert.alert('Error', 'No estás autenticado.');
+      return;
+    }
     if (tipoProducto === '') {
       Alert.alert('Error', 'Por favor, selecciona un tipo de producto.');
       return;
@@ -103,6 +110,7 @@ const RegistroProducto = () => {
           descuentoProducto: descuentoProducto,
           ubicacion: ubicacion,
           nombreProductoLowerCase: nombreProductoLowerCase, // Almacenar el nombre del producto en minúsculas para facilitar la búsqueda
+          userId: userId, // Asociando el producto al userId
         });
 
       Alert.alert('Información', 'Producto registrado con éxito', [

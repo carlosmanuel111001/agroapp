@@ -21,18 +21,19 @@ const InicioSesion = ({route}) => {
 
   const handleLogin = () => {
     console.log('handleLogin ha sido invocado'); // Mensaje para saber que inició la función
+    let userId; // Declarar userId aquí
 
     firebase
       .auth()
       .signInWithEmailAndPassword(email, password)
       .then(userCredential => {
         const user = userCredential.user;
-        console.log('Usuario autenticado con éxito:', user); // Imprimirá el objeto del usuario autenticado
-
-        // Verificar el rol del usuario en la base de datos.
+        console.log('Usuario autenticado con éxito:', user);
+        userId = user.uid; // Imprimirá el objeto del usuario autenticado
+        // Continuamos con la verificación del rol después de actualizar
         return firebase
           .database()
-          .ref(`agricultores/${user.uid}`)
+          .ref(`agricultores/${userId}`) // Usamos userId aquí
           .once('value');
       })
       .then(snapshot => {
@@ -52,7 +53,7 @@ const InicioSesion = ({route}) => {
           console.log(
             "Usuario es un agricultor. Intentando navegar a 'vistaPrincipal'...",
           );
-          navigation.navigate('vistaPrincipal');
+          navigation.navigate('vistaPrincipal', {userId: userId}); // Aquí pasas el UID
         } else {
           console.log('Usuario no es un agricultor o no se encontró el rol');
           throw new Error('Acceso denegado. No eres un agricultor.');

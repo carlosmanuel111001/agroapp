@@ -7,33 +7,26 @@ const PantallaRol = () => {
   const navigation = useNavigation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  console.log('Current value of isAuthenticated:', isAuthenticated);
-
   useEffect(() => {
     const subscriber = auth().onAuthStateChanged(authUser => {
-      console.log('Auth user:', authUser);
       setIsAuthenticated(!!authUser);
     });
 
     return subscriber; // desuscripción en desmontaje
   }, []);
-
+  //Funcion Para el registro de agricultor
   const handleAgricultorPress = () => {
     navigation.navigate('Agricultor', {
       screen: 'InicioSesionAgricultor',
       params: {userRole: 'agricultor'},
     });
   };
-
+  //Funcion para el registro de consumidor
   const handleConsumidorPress = () => {
-    if (isAuthenticated) {
-      // Lleva al usuario a la pantalla de Consumidor si está autenticado como Agricultor
-      navigation.navigate('Consumidor', {
-        screen: 'VistaPrincipalConsumidor',
-      });
-    } else {
-      navigation.navigate('DatosRegistro');
-    }
+    navigation.navigate('Consumidor', {
+      screen: 'InicioSesionConsumidor',
+      params: {userRole: 'consumidor'},
+    });
   };
 
   return (

@@ -106,7 +106,6 @@ const PerfilAgricultor = () => {
     // Aquí puedes agregar la lógica para guardar la información.
     alert('Información guardada'); // Esto es solo un ejemplo. Puedes reemplazarlo con tu lógica.
   };
-  console.log('Productos:', productos);
 
   return (
     <View style={styles.container}>

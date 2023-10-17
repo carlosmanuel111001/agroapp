@@ -9,6 +9,7 @@ import ListaPedidos from '../screen/ScreenConsumidor/ListaPedidos';
 import DetallePedido from '../screen/ScreenConsumidor/DetallePedido';
 import InicioSesionConsumidor from '../screen/ScreenConsumidor/InicioSesionConsumidor';
 import RegistroConsumidor from '../screen/ScreenConsumidor/RegistroConsumidor';
+import PerfilConsumidor from '../screen/ScreenConsumidor/PerfilConsumidor';
 import {CartProvider} from '../screen/ScreenCompartidas/CarritoContext';
 
 // ... (importa las otras pantallas del Consumidor cuando las tengas)
@@ -51,6 +52,10 @@ const ConsumidorStackNavigator = () => {
         <ConsumidorStack.Screen
           name="RegistroConsumidor"
           component={RegistroConsumidor}
+        />
+        <ConsumidorStack.Screen
+          name="PerfilConsumidor"
+          component={PerfilConsumidor}
         />
       </ConsumidorStack.Navigator>
     </CartProvider>

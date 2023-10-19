@@ -37,7 +37,6 @@ const InicioSesionConsumidor = ({route}) => {
           .once('value');
       })
       .then(snapshot => {
-        console.log('Snapshot obtenido con éxito:', snapshot.val());
         const userData = snapshot.val();
 
         if (!userData) {
@@ -50,10 +49,7 @@ const InicioSesionConsumidor = ({route}) => {
         }
 
         if (userData.rol === 'consumidor') {
-          console.log(
-            "Usuario es un consumidor. Intentando navegar a 'VistaPrincipalConsumidor'...",
-          );
-          navigation.navigate('VistaPrincipalConsumidor', {userId: userId}); // Aquí pasas el UID
+          navigation.navigate('VistaPrincipalConsumidor', {consumerId: userId}); // Aquí pasas el UID
         } else {
           console.log('Usuario no es un consumidor o no se encontró el rol');
           throw new Error('Acceso denegado. No eres un consumidor.');

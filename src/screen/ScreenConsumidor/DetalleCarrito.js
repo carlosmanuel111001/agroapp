@@ -16,7 +16,38 @@ const DetalleCarrito = ({route, navigation}) => {
   const {cart, setCart} = useContext(CartContext);
   const [agricultorInfo, setAgricultorInfo] = useState(null);
   const [products, setProducts] = useState([]);
-  const {userId, agricultorId} = route.params;
+  const {userId, agricultorId, consumerId} = route.params;
+  const [nombre, setNombre] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [correo, setCorreo] = useState('');
+  // Consulta Realtime Database para obtener los datos del consumidor
+  useEffect(() => {
+    const loadConsumerData = async () => {
+      try {
+        const consumerRef = firebase
+          .database()
+          .ref(`consumidores/${consumerId}`); // Utiliza el ID del consumidor
+        consumerRef.once('value', snapshot => {
+          const data = snapshot.val();
+          if (data) {
+            // Ahora, data contendrá los datos del consumidor, incluyendo nombre, telefono y correo.
+            // Establece estos datos en el estado.
+            setNombre(data.nombre);
+            setTelefono(data.telefono);
+            setCorreo(data.correo);
+          } else {
+            console.error('No se encontró el consumidor');
+          }
+        });
+      } catch (error) {
+        console.error('Error al cargar los datos del consumidor:', error);
+      }
+    };
+
+    if (consumerId) {
+      loadConsumerData(); // Cargar los datos del consumidor si consumerId está definido
+    }
+  }, [consumerId]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -33,7 +64,8 @@ const DetalleCarrito = ({route, navigation}) => {
     };
 
     fetchProducts();
-  }, []);
+  }, [setProducts]); // Agregar setProducts al array de dependencias
+
   // para traer los datos del agricultor
   useEffect(() => {
     console.log('User ID:', userId);
@@ -124,10 +156,30 @@ const DetalleCarrito = ({route, navigation}) => {
     });
   };
   const handlePedido = () => {
-    submitOrderToFirestore();
-    navigation.navigate('VistaPrincipalConsumidor', {
-      name: 'Nombre del Agricultor',
-    });
+    console.log('Datos del consumidor:');
+    console.log('ConsumerID:', consumerId);
+    console.log('Nombre:', nombre);
+    console.log('Teléfono:', telefono);
+    console.log('Correo:', correo);
+    // Crear un objeto que represente la orden
+    const orderData = {
+      cartItems: cart,
+      totalCost: totalCost,
+      agricultorInfo: agricultorInfo,
+      date: firestore.Timestamp.fromDate(new Date()),
+      consumerInfo: {
+        consumerId: consumerId, // Agrega el ID del consumidor aquí
+        consumerName: nombre, // Agrega el nombre del consumidor
+        consumerPhone: telefono, // Agrega el teléfono del consumidor
+        consumerEmail: correo, // Agrega el correo electrónico del consumidor
+      },
+    };
+
+    // Llamar a la función para enviar la orden a Firestore
+    submitOrderToFirestore(orderData);
+
+    // Navegar de regreso a la vista principal del consumidor
+    navigation.navigate('VistaPrincipalConsumidor');
   };
 
   const confirmRemove = id => {

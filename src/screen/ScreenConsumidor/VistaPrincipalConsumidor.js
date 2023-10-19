@@ -11,6 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
+import firebase from '@react-native-firebase/app';
 
 const FilaDeTarjetas = ({productos, handleCardClick}) => (
   <View style={styles.filaDeTarjetas}>
@@ -43,6 +44,25 @@ const VistaPrincipalConsumidor = ({navigation}) => {
   const [listaOriginalProductos, setListaOriginalProductos] = useState([]);
   const [columns] = useState(3);
   const [textoBusqueda, setTextoBusqueda] = useState('');
+  const [consumerId, setConsumerId] = useState(null);
+
+  //para obtener el id del consumidor
+  useEffect(() => {
+    const obtenerIdDelConsumidor = async () => {
+      try {
+        const user = firebase.auth().currentUser;
+        if (user) {
+          const consumerId = user.uid; // Cambiado a consumerId
+          setConsumerId(consumerId); // Almacena el ID del consumidor en el estado
+          console.log('ID del Consumidor:', consumerId); // Imprime el ID del consumidor en la consola
+        }
+      } catch (error) {
+        console.error('Error al obtener el ID del consumidor:', error);
+      }
+    };
+
+    obtenerIdDelConsumidor();
+  }, []); // Este efecto se ejecuta solo una vez al montar el componente
 
   useEffect(() => {
     const desuscribirse = firestore()
@@ -106,6 +126,7 @@ const VistaPrincipalConsumidor = ({navigation}) => {
           agricultorId: product.userId, // Asegúrate de que esto esté correctamente configurado
           productPrice: parseFloat(product.precioProducto),
           cantidadProducto: parseFloat(product.cantidadProducto), // Convierte cantidadProducto a número
+          consumerId: consumerId, // Aquí pasamos el consumerId
         },
       });
     } else {
@@ -154,7 +175,10 @@ const VistaPrincipalConsumidor = ({navigation}) => {
             style={styles.icon}
           />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Carrito')}>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('Carrito', {consumerId: consumerId})
+          }>
           <Image
             source={require('../assets/carrito.png')}
             style={styles.icon}

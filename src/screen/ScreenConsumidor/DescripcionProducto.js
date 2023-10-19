@@ -13,6 +13,12 @@ import {CartContext} from '../ScreenCompartidas/CarritoContext';
 const DescripcionProducto = ({route, navigation}) => {
   const {cart, setCart} = useContext(CartContext);
   const {selectedProduct} = route.params;
+  const {consumerId} = selectedProduct;
+
+  console.log('consumerId:', consumerId);
+  if (!selectedProduct) {
+    return <Text>Error: No se pudo cargar el producto</Text>;
+  }
 
   if (!selectedProduct) {
     return <Text>Error: No se pudo cargar el producto</Text>;
@@ -52,6 +58,7 @@ const DescripcionProducto = ({route, navigation}) => {
       navigation.navigate('Carrito', {
         productos: [productToAdd], // Puedes pasar el producto recién agregado
         userId: selectedProduct.userId, // Asegúrate de que selectedProduct.userId esté definido
+        consumerId: consumerId,
       });
     }
   };
@@ -91,7 +98,7 @@ const DescripcionProducto = ({route, navigation}) => {
           {selectedProduct.ubicacion || 'Ubicación no especificada'}
         </Text>
         <Text style={styles.label}>Precio:</Text>
-        <Text style={styles.priceText}>C${selectedProduct.precioProducto}</Text>
+        <Text style={styles.priceText}>C${selectedProduct.productPrice}</Text>
         <Text style={styles.label}>Descuento:</Text>
         <Text style={styles.dataText}>{selectedProduct.descuentoProducto}</Text>
 
@@ -119,8 +126,7 @@ const DescripcionProducto = ({route, navigation}) => {
             source={require('../assets/carrito.png')}
             style={styles.cartIcon}
           />
-          <Text style={styles.buttonText}>Agregar al Carrito</Text>
-          {/* El estilo correcto aquí */}
+          <Text style={styles.addToCartText}>Agregar al Carrito</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.messageButton}

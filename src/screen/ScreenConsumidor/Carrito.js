@@ -11,6 +11,11 @@ import {
 import {CartContext} from '../ScreenCompartidas/CarritoContext';
 
 const CarritoDeCompras = ({route, navigation}) => {
+  const {consumerId} = route.params;
+  console.log(
+    'ID del consumidor recibido en CarritoDeCompras:',
+    route.params.consumerId,
+  );
   const carritoContext = useContext(CartContext);
   const carrito = carritoContext.cart;
 
@@ -65,6 +70,7 @@ const CarritoDeCompras = ({route, navigation}) => {
                 productos: groupedCart[item.agricultorId],
                 userId: item.userId,
                 agricultorId: item.agricultorId,
+                consumerId: route.params.consumerId,
               })
             }>
             <View style={styles.itemProductoContainer}>

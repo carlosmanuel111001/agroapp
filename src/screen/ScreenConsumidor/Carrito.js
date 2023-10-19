@@ -13,12 +13,31 @@ import {CartContext} from '../ScreenCompartidas/CarritoContext';
 const CarritoDeCompras = ({route, navigation}) => {
   const carritoContext = useContext(CartContext);
   const carrito = carritoContext.cart;
+  console.log('Primer ítem del carrito:', carrito[0]);
   carrito.forEach(item => {
     if (!item || typeof item.id !== 'string' || !item.nombreProducto) {
       console.error('Producto en el carrito con datos inválidos:', item);
       // Aquí puedes tomar medidas como eliminar el producto del carrito
     }
   });
+  //Funcion para recorrer los datos del carrito y luego pasar los datos a detalle carrito que sean delo mismo
+  //agricultor
+  const groupByAgricultorId = cart => {
+    const grouped = {};
+    cart.forEach(item => {
+      const agricultorId = item.agricultorId;
+      if (!grouped[agricultorId]) {
+        grouped[agricultorId] = [];
+      }
+      grouped[agricultorId].push(item);
+    });
+    return grouped;
+  };
+  const groupedCart = groupByAgricultorId(carrito);
+  const sections = Object.keys(groupedCart).map(agricultorId => ({
+    title: agricultorId,
+    data: groupedCart[agricultorId],
+  }));
 
   return (
     <View style={styles.container}>
@@ -43,7 +62,8 @@ const CarritoDeCompras = ({route, navigation}) => {
           <TouchableOpacity
             onPress={() =>
               navigation.navigate('DetalleCarrito', {
-                productoSeleccionado: item,
+                productos: groupedCart[item.agricultorId],
+                userId: item.userId,
               })
             }>
             <View style={styles.itemProductoContainer}>

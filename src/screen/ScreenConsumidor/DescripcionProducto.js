@@ -107,6 +107,11 @@ const DescripcionProducto = ({route, navigation}) => {
 
         <Text style={styles.label}>Cantidad:</Text>
         <Text style={styles.dataText}>{selectedProduct.cantidadProducto}</Text>
+
+        <Text style={styles.label}>ID del Agricultor:</Text>
+        <Text style={styles.agricultorIdText}>
+          {selectedProduct.userId || 'No disponible'}
+        </Text>
       </View>
 
       <View style={styles.actionContainer}>
@@ -254,6 +259,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 10, // Añadido un pequeño margen a la izquierda para separar el texto del ícono
+  },
+  agricultorIdText: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 10, // Consistente con el espaciado.
   },
 });
 

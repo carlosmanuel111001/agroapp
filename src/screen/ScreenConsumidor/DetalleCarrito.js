@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -10,18 +10,60 @@ import {
 } from 'react-native';
 import {CartContext} from '../ScreenCompartidas/CarritoContext';
 import firestore from '@react-native-firebase/firestore';
+import {firebase} from '@react-native-firebase/database';
 
 const DetalleCarrito = ({route, navigation}) => {
   const {cart, setCart} = useContext(CartContext);
+  const {userId} = route.params; // Obtén el userId de route.params
+  const [agricultorInfo, setAgricultorInfo] = useState(null);
+  const [products, setProducts] = useState([]);
 
-  const agricultorDefault = {
-    id: 1, // ID del producto
-    nombre: 'Juan Pérez',
-    telefono: '123-456-7890',
-    email: 'juan@email.com',
-  };
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const productsSnapshot = await firestore().collection('products').get();
+        const productsData = productsSnapshot.docs.map(doc => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+        setProducts(productsData);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
 
-  const agricultorInfo = route.params.agricultorInfo || agricultorDefault;
+    fetchProducts();
+  }, []);
+  useEffect(() => {
+    console.log('User ID:', userId);
+    const loadAgricultorInfo = async () => {
+      try {
+        const agricultorRef = firebase
+          .database()
+          .ref('agricultores/Tu5Xyv1o0LfrQ0x1DaoPwGfRfU03');
+        agricultorRef
+          .once('value', snapshot => {
+            const data = snapshot.val();
+            console.log('Data:', data);
+            if (data) {
+              setAgricultorInfo(data);
+            } else {
+              console.error('No se encontró el agricultor');
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching data:', error);
+          });
+      } catch (error) {
+        console.error('Error al cargar la info del agricultor:', error);
+      }
+    };
+
+    if (userId) {
+      loadAgricultorInfo(); // Cargar la info del agricultor si userId está definido
+    }
+  }, [userId]);
+
   const totalCost = cart.reduce((acc, prod) => {
     let precio = parseFloat(prod.precioProducto) || 0;
     let cantidadSeleccionada = Number(prod.cantidadSeleccionada) || 1;
@@ -157,11 +199,17 @@ const DetalleCarrito = ({route, navigation}) => {
         </View>
       </View>
       <View style={styles.tarjetaAgricultor}>
-        <Text style={styles.nombreAgricultor}>{agricultorInfo.nombre}</Text>
-        <Text style={styles.infoAgricultor}>
-          Teléfono: {agricultorInfo.telefono}
+        <Text style={styles.nombreAgricultor}>
+          {agricultorInfo
+            ? agricultorInfo.nombre + ' ' + agricultorInfo.apellidos
+            : 'Cargando...'}
         </Text>
-        <Text style={styles.infoAgricultor}>Email: {agricultorInfo.email}</Text>
+        <Text style={styles.infoAgricultor}>
+          Teléfono: {agricultorInfo ? agricultorInfo.telefono : 'Cargando...'}
+        </Text>
+        <Text style={styles.infoAgricultor}>
+          Email: {agricultorInfo ? agricultorInfo.correo : 'Cargando...'}
+        </Text>
       </View>
       <FlatList
         contentContainerStyle={styles.listaContenido}
@@ -176,6 +224,11 @@ const DetalleCarrito = ({route, navigation}) => {
             </Text>
             <Text style={styles.cantidadDisponibleTexto}>
               Cantidad disponible: {item.cantidadProducto}
+            </Text>
+            <Text style={styles.nombreAgricultor}>
+              {agricultorInfo
+                ? agricultorInfo.nombre + ' ' + agricultorInfo.apellidos
+                : 'Cargando...'}
             </Text>
 
             <View style={styles.controlesProducto}>

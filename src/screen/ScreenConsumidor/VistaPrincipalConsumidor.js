@@ -103,6 +103,7 @@ const VistaPrincipalConsumidor = ({navigation}) => {
       navigation.navigate('DescripcionProducto', {
         selectedProduct: {
           ...product,
+          agricultorId: product.userId, // Asegúrate de que esto esté correctamente configurado
           productPrice: parseFloat(product.precioProducto),
           cantidadProducto: parseFloat(product.cantidadProducto), // Convierte cantidadProducto a número
         },

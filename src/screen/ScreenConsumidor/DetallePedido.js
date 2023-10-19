@@ -65,7 +65,7 @@ const DetallePedido = ({route}) => {
             <View style={styles.productDetails}>
               <Text style={styles.productName}>{item.nombreProducto}</Text>
               <Text>Cantidad: {item.cantidadSeleccionada}</Text>
-              <Text>Precio: ${item.productPrice}</Text>
+              <Text>Precio: ${item.precioProducto}</Text>
             </View>
           </View>
         ))}

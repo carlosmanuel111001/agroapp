@@ -102,6 +102,7 @@ const DetalleCarrito = ({route, navigation}) => {
       });
     });
   };
+
   // Lógica para aumentar la cantidad del producto
   const handleIncrease = id => {
     setCart(prevCart => {

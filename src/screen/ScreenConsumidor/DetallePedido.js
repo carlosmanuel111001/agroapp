@@ -40,7 +40,7 @@ const DetallePedido = ({route}) => {
             </Text>
             <Button
               title="Pagar Ahora"
-              onPress={() => navigation.navigate('VistaPrincipalConsumidor')}
+              onPress={() => navigation.navigate('Transacion')}
               color="#4CAF50"
             />
           </>

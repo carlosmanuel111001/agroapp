@@ -14,9 +14,9 @@ import {firebase} from '@react-native-firebase/database';
 
 const DetalleCarrito = ({route, navigation}) => {
   const {cart, setCart} = useContext(CartContext);
-  const {userId} = route.params; // Obtén el userId de route.params
   const [agricultorInfo, setAgricultorInfo] = useState(null);
   const [products, setProducts] = useState([]);
+  const {userId, agricultorId} = route.params;
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -34,17 +34,17 @@ const DetalleCarrito = ({route, navigation}) => {
 
     fetchProducts();
   }, []);
+  // para traer los datos del agricultor
   useEffect(() => {
     console.log('User ID:', userId);
     const loadAgricultorInfo = async () => {
       try {
         const agricultorRef = firebase
           .database()
-          .ref('agricultores/Tu5Xyv1o0LfrQ0x1DaoPwGfRfU03');
+          .ref(`agricultores/${agricultorId}`);
         agricultorRef
           .once('value', snapshot => {
             const data = snapshot.val();
-            console.log('Data:', data);
             if (data) {
               setAgricultorInfo(data);
             } else {
@@ -62,7 +62,7 @@ const DetalleCarrito = ({route, navigation}) => {
     if (userId) {
       loadAgricultorInfo(); // Cargar la info del agricultor si userId está definido
     }
-  }, [userId]);
+  }, [userId, agricultorId]);
 
   const totalCost = cart.reduce((acc, prod) => {
     let precio = parseFloat(prod.precioProducto) || 0;

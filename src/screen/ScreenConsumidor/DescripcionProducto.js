@@ -40,23 +40,20 @@ const DescripcionProducto = ({route, navigation}) => {
     // Crear una copia de selectedProduct
     const productToAdd = {
       ...selectedProduct,
-      cantidadSeleccionada: 1, // Puse 1 porque entiendo que cuando agregas el producto por primera vez, quieres una cantidad de 1.
+      cantidadSeleccionada: 1,
       productPrice: parseFloat(selectedProduct.productPrice),
       cantidadProducto: parseFloat(selectedProduct.cantidadProducto),
     };
 
     setCart(prevCart => [...prevCart, productToAdd]);
 
-    Alert.alert(
-      'Producto Agregado',
-      'El producto ha sido agregado a tu carrito de compras',
-      [
-        {
-          text: 'OK',
-          onPress: () => navigation.navigate('VistaPrincipalConsumidor'),
-        },
-      ],
-    );
+    if (selectedProduct.userId) {
+      // Pasar solo el ID del agricultor a la vista Carrito
+      navigation.navigate('Carrito', {
+        productos: [productToAdd], // Puedes pasar el producto recién agregado
+        userId: selectedProduct.userId, // Asegúrate de que selectedProduct.userId esté definido
+      });
+    }
   };
   return (
     <ScrollView

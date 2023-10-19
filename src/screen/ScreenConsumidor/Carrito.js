@@ -13,7 +13,7 @@ import {CartContext} from '../ScreenCompartidas/CarritoContext';
 const CarritoDeCompras = ({route, navigation}) => {
   const carritoContext = useContext(CartContext);
   const carrito = carritoContext.cart;
-  console.log('Primer ítem del carrito:', carrito[0]);
+
   carrito.forEach(item => {
     if (!item || typeof item.id !== 'string' || !item.nombreProducto) {
       console.error('Producto en el carrito con datos inválidos:', item);
@@ -64,6 +64,7 @@ const CarritoDeCompras = ({route, navigation}) => {
               navigation.navigate('DetalleCarrito', {
                 productos: groupedCart[item.agricultorId],
                 userId: item.userId,
+                agricultorId: item.agricultorId,
               })
             }>
             <View style={styles.itemProductoContainer}>

@@ -15,7 +15,6 @@ const DescripcionProducto = ({route, navigation}) => {
   const {selectedProduct} = route.params;
   const {consumerId} = selectedProduct;
 
-  console.log('consumerId:', consumerId);
   if (!selectedProduct) {
     return <Text>Error: No se pudo cargar el producto</Text>;
   }

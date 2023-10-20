@@ -10,6 +10,7 @@ import GestionPedido from '../screen/ScreenAgricultor/GestionPedido';
 import DetallePedido from '../screen/ScreenAgricultor/DetallePedido';
 import DatosRegistro from '../screen/ScreenAgricultor/DatosRegistro';
 import PerfilAgricultor from '../screen/ScreenAgricultor/PerfilAgricultor';
+import CalificacionComentario from '../screen/ScreenAgricultor/CalificacionComentario';
 
 const AgricultorStack = createStackNavigator();
 
@@ -64,6 +65,10 @@ const AgricultorStackNavigator = () => {
         <AgricultorStack.Screen
           name="PerfilAgricultor"
           component={PerfilAgricultor}
+        />
+        <AgricultorStack.Screen
+          name="CalificacionComentario"
+          component={CalificacionComentario}
         />
       </AgricultorStack.Navigator>
     );

@@ -28,7 +28,6 @@ const InicioSesion = ({route}) => {
       .signInWithEmailAndPassword(email, password)
       .then(userCredential => {
         const user = userCredential.user;
-        console.log('Usuario autenticado con éxito:', user);
         userId = user.uid; // Imprimirá el objeto del usuario autenticado
         // Continuamos con la verificación del rol después de actualizar
         return firebase

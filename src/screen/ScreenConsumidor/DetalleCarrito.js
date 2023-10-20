@@ -156,11 +156,6 @@ const DetalleCarrito = ({route, navigation}) => {
     });
   };
   const handlePedido = () => {
-    console.log('Datos del consumidor:');
-    console.log('ConsumerID:', consumerId);
-    console.log('Nombre:', nombre);
-    console.log('Teléfono:', telefono);
-    console.log('Correo:', correo);
     // Crear un objeto que represente la orden
     const orderData = {
       cartItems: cart,
@@ -202,16 +197,10 @@ const DetalleCarrito = ({route, navigation}) => {
     navigation.navigate('VistaPrincipalConsumidor'); // Cambia 'VistaPrincipal' con el nombre correcto de tu vista principal si es diferente.
   };
   // Funcion que envia los datos del carrito a firestore
-  const submitOrderToFirestore = async () => {
+  const submitOrderToFirestore = async orderData => {
     try {
-      await firestore()
-        .collection('orders')
-        .add({
-          cartItems: cart,
-          totalCost: totalCost,
-          agricultorInfo: agricultorInfo,
-          date: firestore.Timestamp.fromDate(new Date()),
-        });
+      console.log('Enviando pedido a Firestore:', orderData); // Agrega este console.log
+      await firestore().collection('orders').add(orderData);
       Alert.alert('Pedido enviado', 'Tu pedido ha sido enviado con éxito');
     } catch (error) {
       console.error('Error al enviar el pedido a Firestore:', error);

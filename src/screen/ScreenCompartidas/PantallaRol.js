@@ -37,14 +37,20 @@ const PantallaRol = () => {
       <TouchableOpacity
         style={styles.choiceBox}
         onPress={handleAgricultorPress}>
-        <Image source={require('../assets/emoji.png')} style={styles.icon} />
+        <Image
+          source={require('../assets/agricultor.png')}
+          style={styles.icon}
+        />
         <Text style={styles.choiceText}>Agricultor</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.choiceBox}
         onPress={handleConsumidorPress}>
-        <Image source={require('../assets/personal.png')} style={styles.icon} />
+        <Image
+          source={require('../assets/consumidor.png')}
+          style={styles.icon}
+        />
         <Text style={styles.choiceText}>Consumidor</Text>
       </TouchableOpacity>
     </View>

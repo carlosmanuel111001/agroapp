@@ -1,70 +1,133 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Alert,
+  ScrollView,
 } from 'react-native';
 
 const DebitCardPaymentScreen = () => {
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handlePayment = () => {
+    setIsProcessing(true);
+
+    setTimeout(() => {
+      Alert.alert(
+        'Confirmación',
+        'Tu pago está siendo procesado. Recibirás una notificación de confirmación.',
+      );
+      setIsProcessing(false);
+    }, 2000);
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Pago con Tarjeta de Débito</Text>
+    <ScrollView style={styles.scrollView}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Pago con Tarjeta de Débito</Text>
 
-      <TextInput
-        placeholder="Número de Tarjeta"
-        keyboardType="number-pad"
-        style={styles.input}
-      />
+        <Text style={styles.label}>Destinatario:</Text>
+        <TextInput value="Carlos Fuentes" style={styles.input} />
 
-      <View style={styles.cardDetailsContainer}>
+        <Text style={styles.label}>Producto:</Text>
+        <TextInput value="Pera" style={styles.input} />
+
+        <View style={styles.totalContainer}>
+          <Text style={styles.label}>Total a Pagar:</Text>
+          <Text style={styles.totalAmount}>$375.00</Text>
+        </View>
+
+        <View style={styles.divider}></View>
+
+        <Text style={styles.label}>Datos de la Tarjeta</Text>
         <TextInput
-          placeholder="MM/AA"
+          placeholder="Número de Tarjeta"
           keyboardType="number-pad"
-          style={[styles.input, styles.dateInput]}
+          style={styles.input}
         />
-        <TextInput
-          placeholder="CVV"
-          keyboardType="number-pad"
-          style={[styles.input, styles.cvvInput]}
-        />
+
+        <View style={styles.cardDetailsContainer}>
+          <TextInput
+            placeholder="MM/AA"
+            keyboardType="number-pad"
+            style={[styles.input, styles.dateInput]}
+          />
+          <TextInput
+            placeholder="CVV"
+            keyboardType="number-pad"
+            style={[styles.input, styles.cvvInput]}
+          />
+        </View>
+
+        <TextInput placeholder="Nombre en la Tarjeta" style={styles.input} />
+
+        <TouchableOpacity
+          style={styles.payButton}
+          onPress={handlePayment}
+          disabled={isProcessing}>
+          <Text style={styles.payButtonText}>
+            {isProcessing ? 'Procesando...' : 'Realizar Pago'}
+          </Text>
+        </TouchableOpacity>
+
+        <Text style={styles.footer}>
+          Toda la información es encriptada y transmitida de forma segura.
+        </Text>
       </View>
-
-      <TextInput placeholder="Nombre en la Tarjeta" style={styles.input} />
-
-      <TouchableOpacity style={styles.payButton}>
-        <Text style={styles.payButtonText}>Realizar Pago</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.footer}>
-        Toda la información es encriptada y transmitida de forma segura.
-      </Text>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollView: {
+    backgroundColor: '#F8F9FD',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#F8F9FD',
     padding: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#333',
+    color: '#3B3F5C',
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#3B3F5C',
+    marginBottom: 10,
+    marginTop: 20,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#d0d0d0',
-    borderRadius: 8,
+    borderColor: '#E0E0E5',
+    borderRadius: 10,
     paddingVertical: 12,
-    paddingHorizontal: 15,
+    paddingHorizontal: 20,
     fontSize: 16,
     marginBottom: 15,
-    backgroundColor: 'white',
+    backgroundColor: '#FFF',
+  },
+  totalContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  totalAmount: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#D0D0D5',
+    marginVertical: 20,
+    width: '100%',
   },
   cardDetailsContainer: {
     flexDirection: 'row',
@@ -80,11 +143,11 @@ const styles = StyleSheet.create({
   },
   payButton: {
     backgroundColor: '#4CAF50',
-    borderRadius: 8,
+    borderRadius: 10,
     paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 30,
   },
   payButtonText: {
     color: 'white',
@@ -95,7 +158,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     marginTop: 30,
-    color: '#777',
+    color: '#8D8D9D',
   },
 });
 

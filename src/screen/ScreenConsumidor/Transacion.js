@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -7,42 +7,39 @@ import {
   StyleSheet,
 } from 'react-native';
 
-const PaymentScreen = () => {
-  const [amount, setAmount] = useState('');
-  const [email, setEmail] = useState('');
-
-  const handlePayment = () => {
-    // Realiza la lógica de pago con PayPal aquí, utilizando la librería correspondiente
-
-    // Divide el monto en 3% y 97%
-    const totalAmount = parseFloat(amount);
-    const commission = totalAmount * 0.03;
-    const mainAccountAmount = totalAmount - commission;
-
-    // Envía los montos a las cuentas correspondientes
-
-    // Luego puedes navegar a la pantalla de confirmación o cualquier otra acción
-  };
-
+const DebitCardPaymentScreen = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Realizar Pago</Text>
+      <Text style={styles.title}>Pago con Tarjeta de Débito</Text>
+
       <TextInput
+        placeholder="Número de Tarjeta"
+        keyboardType="number-pad"
         style={styles.input}
-        placeholder="Monto Total"
-        keyboardType="numeric"
-        value={amount}
-        onChangeText={text => setAmount(text)}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Email del destinatario del 3%"
-        value={email}
-        onChangeText={text => setEmail(text)}
-      />
-      <TouchableOpacity style={styles.button} onPress={handlePayment}>
-        <Text style={styles.buttonText}>Pagar</Text>
+
+      <View style={styles.cardDetailsContainer}>
+        <TextInput
+          placeholder="MM/AA"
+          keyboardType="number-pad"
+          style={[styles.input, styles.dateInput]}
+        />
+        <TextInput
+          placeholder="CVV"
+          keyboardType="number-pad"
+          style={[styles.input, styles.cvvInput]}
+        />
+      </View>
+
+      <TextInput placeholder="Nombre en la Tarjeta" style={styles.input} />
+
+      <TouchableOpacity style={styles.payButton}>
+        <Text style={styles.payButtonText}>Realizar Pago</Text>
       </TouchableOpacity>
+
+      <Text style={styles.footer}>
+        Toda la información es encriptada y transmitida de forma segura.
+      </Text>
     </View>
   );
 };
@@ -50,35 +47,56 @@ const PaymentScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#f9f9f9',
     padding: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    color: '#333',
   },
   input: {
-    width: '100%',
-    height: 40,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    marginBottom: 10,
+    borderColor: '#d0d0d0',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    marginBottom: 15,
+    backgroundColor: 'white',
   },
-  button: {
-    backgroundColor: 'blue',
-    padding: 10,
-    borderRadius: 5,
+  cardDetailsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
-  buttonText: {
+  dateInput: {
+    flex: 1,
+    marginRight: 10,
+  },
+  cvvInput: {
+    flex: 1,
+    marginLeft: 10,
+  },
+  payButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 8,
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  payButtonText: {
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  footer: {
+    fontSize: 14,
     textAlign: 'center',
+    marginTop: 30,
+    color: '#777',
   },
 });
 
-export default PaymentScreen;
+export default DebitCardPaymentScreen;

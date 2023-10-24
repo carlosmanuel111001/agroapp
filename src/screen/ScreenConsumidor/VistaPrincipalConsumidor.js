@@ -10,6 +10,7 @@ import {
   Dimensions,
   Alert,
 } from 'react-native';
+
 import firestore from '@react-native-firebase/firestore';
 import firebase from '@react-native-firebase/app';
 
@@ -272,9 +273,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   menuImage: {
-    width: 30, // ajusta el tamaño según tu necesidad
+    width: 30,
     height: 30,
-    marginLeft: 10, // un pequeño margen para separarlo del texto
+    marginLeft: 10,
   },
   searchCard: {
     flexDirection: 'row',
@@ -282,7 +283,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 12,
     marginTop: 20,
-    marginBottom: 20, // Espacio después de la sección de búsqueda
+    marginBottom: 20,
     borderRadius: 25,
     shadowColor: '#000',
     shadowOffset: {
@@ -310,14 +311,13 @@ const styles = StyleSheet.create({
     height: 25,
     marginLeft: 10,
   },
-
   nearbyTitle: {
     fontSize: 22,
     fontWeight: 'bold',
     color: 'black',
     marginTop: 25,
     marginBottom: 15,
-    marginLeft: 10, // Añade más margen si lo consideras necesario
+    marginLeft: 10,
   },
   cardsContainer: {
     flexDirection: 'row',
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: 'white',
     borderRadius: 15,
-    margin: 5, // Un pequeño margen para separar las tarjetas
+    margin: 5,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
@@ -341,27 +341,30 @@ const styles = StyleSheet.create({
   },
   productImage: {
     width: '100%',
-    height: '75%', // Establecemos que la imagen ocupe el 75% del alto de la tarjeta
+    height: '75%',
     resizeMode: 'cover',
   },
   productDescription: {
     padding: 5,
     fontSize: 14,
     textAlign: 'center',
-    flex: 1, // Para que ocupe el espacio restante en la tarjeta
+    flex: 1,
   },
   cardGroup: {
     flexDirection: 'row',
-    marginBottom: 15, // Añade un espacio entre los grupos de tarjetas
+    marginBottom: 15,
   },
   logOutButton: {
-    marginTop: 20,
-    marginBottom: 50, // Espacio en la parte inferior
+    marginTop: 2,
+    marginBottom: 10,
     alignSelf: 'center',
+    backgroundColor: 'transparent',
+    borderColor: 'red',
+    borderWidth: 1,
   },
   logOutText: {
     fontSize: 16,
-    color: '#7B8D93', // Un color tenue para que el botón sea discreto
+    color: 'red',
     textDecorationLine: 'underline',
   },
   cartCounter: {
@@ -379,7 +382,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
-  // Estilos para los títulos y tarjetas
   tituloCercaDeTi: {
     fontSize: 22,
     fontWeight: 'bold',
@@ -394,7 +396,7 @@ const styles = StyleSheet.create({
   },
   filaDeTarjetas: {
     flexDirection: 'row',
-    justifyContent: 'flex-start', // Asegura que las tarjetas se alineen desde la izquierda
+    justifyContent: 'flex-start',
     marginBottom: 15,
   },
   tarjeta: {
@@ -402,7 +404,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 15,
     overflow: 'hidden',
-    margin: 5, // Agrega margen alrededor de cada tarjeta
+    margin: 5,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -422,12 +424,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     flex: 1,
-    color: 'black', // Color del texto
+    color: 'black',
   },
   imagenDeProductoPlaceholder: {
     width: '100%',
-    height: cardWidth * 0.75, // Toma el mismo espacio que la imagen.
-    backgroundColor: '#F2F3F4', // Color de fondo claro como placeholder. Puedes ajustar este color según tus preferencias.
+    height: cardWidth * 0.75,
+    backgroundColor: '#F2F3F4',
   },
 });
 

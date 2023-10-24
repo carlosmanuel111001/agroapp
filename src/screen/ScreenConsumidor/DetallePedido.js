@@ -7,7 +7,6 @@ import {
   Button,
   TouchableOpacity,
 } from 'react-native';
-import VistaPrincipalConsumidor from './VistaPrincipalConsumidor';
 import {useNavigation} from '@react-navigation/native';
 
 const DetallePedido = ({route}) => {
@@ -16,7 +15,6 @@ const DetallePedido = ({route}) => {
 
   return (
     <View style={styles.container}>
-      {/* Encabezado */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -28,7 +26,6 @@ const DetallePedido = ({route}) => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Detalle del Pedido</Text>
         <View style={styles.backButton}></View>
-        {/* Placeholder para centrar el título */}
       </View>
 
       <View style={styles.card}>
@@ -40,7 +37,9 @@ const DetallePedido = ({route}) => {
             </Text>
             <Button
               title="Pagar Ahora"
-              onPress={() => navigation.navigate('Transacion')}
+              onPress={() =>
+                navigation.navigate('Transacion', {totalCost: pedido.totalCost})
+              }
               color="#4CAF50"
             />
           </>

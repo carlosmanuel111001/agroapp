@@ -84,7 +84,13 @@ const RegistroProducto = ({route}) => {
   };
 
   async function subirProducto() {
-    const userId = auth().currentUser ? auth().currentUser.uid : null;
+    console.log('UserId:', userId);
+    const userId =
+      auth().currentUser &&
+      typeof auth().currentUser === 'object' &&
+      auth().currentUser.uid
+        ? auth().currentUser.uid
+        : null;
 
     if (!userId) {
       Alert.alert('Error', 'No estás autenticado.');
@@ -122,7 +128,12 @@ const RegistroProducto = ({route}) => {
       // Resetear la pila de navegación para ir a VistaPrincipal después de registrar el producto
       navigation.reset({
         index: 0,
-        routes: [{name: 'vistaPrincipal'}],
+        routes: [
+          {
+            name: 'vistaPrincipal',
+            params: {userId: userId}, // Asegúrate de tener el userId disponible en este scope
+          },
+        ],
       });
     } catch (error) {
       console.log(error);
@@ -314,6 +325,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginTop: 10,
     alignItems: 'center',
+    margin: 10, // Margen agregado
   },
   imageButtonText: {
     color: 'white',
@@ -321,6 +333,7 @@ const styles = StyleSheet.create({
   },
   imagePreviewContainer: {
     marginTop: 20,
+    margin: 10, // Margen agregado
   },
   imagePreviewText: {
     fontSize: 16,
@@ -336,11 +349,13 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: 'white',
+    margin: 10, // Margen agregado
   },
   label: {
     fontSize: 16,
     marginBottom: 5,
     fontWeight: 'bold',
+    margin: 10, // Margen agregado
   },
   input: {
     borderWidth: 1,
@@ -349,6 +364,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 15,
     fontSize: 14,
+    margin: 10, // Margen agregado
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -356,6 +372,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginHorizontal: 10,
     marginBottom: 30,
+    margin: 10, // Margen agregado
   },
   registrarButton: {
     flex: 1,

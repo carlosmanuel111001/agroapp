@@ -7,83 +7,132 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  ActivityIndicator,
+  ImageBackground,
+  Modal,
+  Image,
 } from 'react-native';
+import bacLogo from '../assets/master.png';
+import Bac from '../assets/Bac.png';
+import fise from '../assets/fise.png';
+import banpro from '../assets/banpro.png';
 
-const DebitCardPaymentScreen = () => {
+const DebitCardPaymentScreen = ({route}) => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+  const [cvv, setCvv] = useState('');
+  const {totalCost} = route.params;
 
   const handlePayment = () => {
-    setIsProcessing(true);
+    const cardNumberRegex = /^\d{16}$/;
+    const expiryDateRegex = /^(0[1-9]|1[0-2])\/?([0-9]{4}|[0-9]{2})$/;
+    const cvvRegex = /^\d{3}$/;
 
+    if (
+      !cardNumberRegex.test(cardNumber) ||
+      !expiryDateRegex.test(expiryDate) ||
+      !cvvRegex.test(cvv)
+    ) {
+      Alert.alert('Error', 'Por favor, ingresa datos válidos.');
+      return;
+    }
+
+    setIsProcessing(true);
     setTimeout(() => {
-      Alert.alert(
-        'Confirmación',
-        'Tu pago está siendo procesado. Recibirás una notificación de confirmación.',
-      );
+      Alert.alert('Confirmación', 'Pago Realizado');
       setIsProcessing(false);
     }, 2000);
   };
 
   return (
-    <ScrollView style={styles.scrollView}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Pago con Tarjeta de Débito</Text>
+    <ImageBackground source={bacLogo} style={styles.imageBackground}>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.container}>
+          <View style={styles.imageContainer}>
+            <Image source={Bac} style={styles.image} />
+            <Image source={banpro} style={styles.image} />
+            <Image source={fise} style={styles.image} />
+            <Image source={bacLogo} style={styles.image} />
+          </View>
 
-        <Text style={styles.label}>Destinatario:</Text>
-        <TextInput value="Carlos Fuentes" style={styles.input} />
+          <Text style={styles.title}>Pago con Tarjeta</Text>
+          <Text style={styles.label}>Destinatario:</Text>
+          <TextInput value="Carlos Fuentes" style={styles.input} />
 
-        <Text style={styles.label}>Producto:</Text>
-        <TextInput value="Pera" style={styles.input} />
+          <View style={styles.totalContainer}>
+            <Text style={styles.label}>Total a Pagar:</Text>
+          </View>
+          <Text style={styles.totalAmount}>C$ {totalCost}</Text>
 
-        <View style={styles.totalContainer}>
-          <Text style={styles.label}>Total a Pagar:</Text>
-          <Text style={styles.totalAmount}>$375.00</Text>
-        </View>
-
-        <View style={styles.divider}></View>
-
-        <Text style={styles.label}>Datos de la Tarjeta</Text>
-        <TextInput
-          placeholder="Número de Tarjeta"
-          keyboardType="number-pad"
-          style={styles.input}
-        />
-
-        <View style={styles.cardDetailsContainer}>
+          <View style={styles.divider}></View>
+          <Text style={styles.label}>Datos de la Tarjeta</Text>
           <TextInput
-            placeholder="MM/AA"
+            placeholder="Número de Tarjeta"
             keyboardType="number-pad"
-            style={[styles.input, styles.dateInput]}
+            style={styles.input}
+            value={cardNumber}
+            onChangeText={setCardNumber}
+            maxLength={16}
           />
-          <TextInput
-            placeholder="CVV"
-            keyboardType="number-pad"
-            style={[styles.input, styles.cvvInput]}
-          />
-        </View>
-
-        <TextInput placeholder="Nombre en la Tarjeta" style={styles.input} />
-
-        <TouchableOpacity
-          style={styles.payButton}
-          onPress={handlePayment}
-          disabled={isProcessing}>
-          <Text style={styles.payButtonText}>
-            {isProcessing ? 'Procesando...' : 'Realizar Pago'}
+          <View style={styles.cardDetailsContainer}>
+            <TextInput
+              placeholder="MM/AA"
+              keyboardType="number-pad"
+              style={[styles.input, styles.dateInput]}
+              value={expiryDate}
+              onChangeText={setExpiryDate}
+              maxLength={5}
+            />
+            <TextInput
+              placeholder="CVV"
+              keyboardType="number-pad"
+              style={[styles.input, styles.cvvInput]}
+              value={cvv}
+              onChangeText={setCvv}
+              maxLength={3}
+            />
+          </View>
+          <TextInput placeholder="Nombre en la Tarjeta" style={styles.input} />
+          <TouchableOpacity
+            style={styles.payButton}
+            onPress={handlePayment}
+            disabled={isProcessing}>
+            {isProcessing ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.payButtonText}>Realizar Pago</Text>
+            )}
+          </TouchableOpacity>
+          <Text style={styles.footer}>
+            Toda la información es encriptada y transmitida de forma segura.
           </Text>
-        </TouchableOpacity>
+        </View>
+      </ScrollView>
 
-        <Text style={styles.footer}>
-          Toda la información es encriptada y transmitida de forma segura.
-        </Text>
-      </View>
-    </ScrollView>
+      {isProcessing && (
+        <Modal
+          transparent={true}
+          animationType="none"
+          visible={isProcessing}
+          onRequestClose={() => {}}>
+          <View
+            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            <ActivityIndicator size="large" color="#4CAF50" />
+          </View>
+        </Modal>
+      )}
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  imageBackground: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
   scrollView: {
-    backgroundColor: '#F8F9FD',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   container: {
     flex: 1,
@@ -128,6 +177,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#D0D0D5',
     marginVertical: 20,
     width: '100%',
+  },
+  imageContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  image: {
+    width: 70,
+    height: 70,
+    resizeMode: 'contain',
+    marginHorizontal: 5,
   },
   cardDetailsContainer: {
     flexDirection: 'row',

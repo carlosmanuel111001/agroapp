@@ -6,18 +6,18 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import {CartContext} from '../ScreenCompartidas/CarritoContext';
+
+import firestore from '@react-native-firebase/firestore';
+
+const firestoreDb = firestore();
 
 const DescripcionProducto = ({route, navigation}) => {
   const {cart, setCart} = useContext(CartContext);
   const {selectedProduct} = route.params;
   const {consumerId} = selectedProduct;
-
-  if (!selectedProduct) {
-    return <Text>Error: No se pudo cargar el producto</Text>;
-  }
+  const agricultorId = selectedProduct.userId;
 
   if (!selectedProduct) {
     return <Text>Error: No se pudo cargar el producto</Text>;
@@ -36,9 +36,33 @@ const DescripcionProducto = ({route, navigation}) => {
       productPrice: selectedProduct.price,
     });
   };
+  console.log(firestore);
+  const chatId =
+    agricultorId < consumerId
+      ? agricultorId + consumerId
+      : consumerId + agricultorId;
 
-  const handleChatPress = () => {
-    navigation.navigate('DetalleMensaje', {});
+  const handleChatPress = async () => {
+    try {
+      const chatRef = firestoreDb.collection('chats').doc(chatId);
+      const chatSnapshot = await chatRef.get();
+
+      if (!chatSnapshot.exists) {
+        // Si no existe el chat, crea uno nuevo
+        await chatRef.set({
+          agricultorId: agricultorId,
+          consumidorId: consumerId,
+        });
+      }
+
+      navigation.navigate('DetalleMensaje', {chatId});
+    } catch (error) {
+      console.error('Error al acceder o crear el chat: ', error);
+      // Aquí puedes optar por mostrar un mensaje al usuario sobre el error, si lo consideras necesario.
+      alert(
+        'Ocurrió un error al intentar acceder o crear el chat. Por favor, intenta de nuevo.',
+      );
+    }
   };
 
   const handleAddToCart = () => {

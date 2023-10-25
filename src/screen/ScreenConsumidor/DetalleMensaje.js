@@ -6,8 +6,13 @@ import {
   Button,
   FlatList,
   StyleSheet,
+  TouchableOpacity,
+  Image,
 } from 'react-native';
 import firebase from '@react-native-firebase/app';
+import '@react-native-firebase/firestore';
+
+import consumerImage from '../assets/agricultor.png';
 
 const DetalleMensaje = ({route}) => {
   const {agricultorId, consumerId} = route.params;
@@ -20,15 +25,15 @@ const DetalleMensaje = ({route}) => {
       ? agricultorId + consumerId
       : consumerId + agricultorId;
 
-  useEffect(() => {
-    const firestore = firebase.firestore();
+  const firestore = firebase.firestore();
 
+  useEffect(() => {
     // Escuchar los mensajes de la base de datos para este chat en tiempo real.
     const unsubscribe = firestore
       .collection('chats')
       .doc(chatId)
       .collection('messages')
-      .orderBy('timestamp')
+      .orderBy('timestamp', 'desc')
       .onSnapshot(snapshot => {
         const fetchedMessages = snapshot.docs.map(doc => ({
           id: doc.id,
@@ -39,32 +44,65 @@ const DetalleMensaje = ({route}) => {
 
     // Limpiamos la suscripción al salir del componente.
     return () => unsubscribe();
-  }, [chatId]);
+  }, [chatId, firestore]);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim() === '') return;
+  const handleSendMessage = async () => {
+    if (!agricultorId || !consumerId || newMessage.trim() === '') {
+      console.error('Algún valor es indefinido:', {
+        agricultorId,
+        consumerId,
+        newMessage,
+      });
+      return;
+    }
 
-    const firestore = firebase.firestore();
-    firestore.collection('chats').doc(chatId).collection('messages').add({
-      text: newMessage,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    });
+    try {
+      const timestamp = firebase.firestore.FieldValue.serverTimestamp();
 
-    setNewMessage('');
+      await firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .add({
+          text: newMessage,
+          timestamp: timestamp,
+        });
+
+      setNewMessage('');
+    } catch (error) {
+      console.error('Error al enviar el mensaje:', error);
+    }
   };
 
   return (
     <View style={styles.container}>
       <FlatList
+        inverted
         data={messages}
         keyExtractor={item => item.id}
         renderItem={({item}) => (
-          <View style={styles.messageBox}>
-            <Text>{item.text}</Text>
+          <View
+            style={[
+              styles.messageRow,
+              item.sender === 'agricultor'
+                ? styles.rightMessage
+                : styles.leftMessage,
+            ]}>
+            {item.sender !== 'agricultor' && (
+              <Image source={consumerImage} style={styles.userImage} />
+            )}
+            <View
+              style={[
+                styles.messageBubble,
+                item.sender === 'agricultor'
+                  ? styles.rightBubble
+                  : styles.leftBubble,
+              ]}>
+              <Text style={styles.messageText}>{item.text}</Text>
+            </View>
           </View>
         )}
       />
-
       <View style={styles.inputContainer}>
         <TextInput
           value={newMessage}
@@ -72,7 +110,9 @@ const DetalleMensaje = ({route}) => {
           style={styles.input}
           placeholder="Escribe un mensaje..."
         />
-        <Button title="Enviar" onPress={handleSendMessage} />
+        <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
+          <Text style={styles.sendButtonText}>Enviar</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -83,25 +123,65 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  messageBox: {
+  messageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 5,
+    paddingHorizontal: 10,
+  },
+  rightMessage: {
+    justifyContent: 'flex-end',
+  },
+  leftMessage: {
+    justifyContent: 'flex-start',
+  },
+  userImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginHorizontal: 5,
+  },
+  messageBubble: {
     padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderRadius: 20,
+    margin: 5,
+    maxWidth: '80%',
+  },
+  rightBubble: {
+    backgroundColor: '#a8e6cf',
+  },
+  leftBubble: {
+    backgroundColor: '#e6e6e6',
+  },
+  messageText: {
+    fontSize: 16,
   },
   inputContainer: {
     flexDirection: 'row',
     padding: 10,
     backgroundColor: '#fff',
+    alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: '#ddd',
   },
   input: {
     flex: 1,
-    padding: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 5,
+    borderRadius: 20,
     marginRight: 10,
+    fontSize: 16,
+  },
+  sendButton: {
+    backgroundColor: '#5DDCAE',
+    padding: 10,
+    borderRadius: 20,
+  },
+  sendButtonText: {
+    color: 'white',
+    fontSize: 16,
   },
 });
 

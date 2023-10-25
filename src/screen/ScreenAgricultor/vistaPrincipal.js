@@ -25,7 +25,7 @@ const VistaPrincipal = ({route}) => {
     navigation.navigate('VistaOpcionesAgricultor');
   };
   const handleMessagesPress = () => {
-    navigation.navigate('Mensaje');
+    navigation.navigate('Mensaje', {userId});
   };
   const handleViewPress = () => {
     // Abre el modal solo cuando se hace clic en el botón "Buscar"

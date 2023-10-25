@@ -55,7 +55,7 @@ const DescripcionProducto = ({route, navigation}) => {
         });
       }
 
-      navigation.navigate('DetalleMensaje', {chatId});
+      navigation.navigate('DetalleMensaje', {agricultorId, consumerId});
     } catch (error) {
       console.error('Error al acceder o crear el chat: ', error);
       // Aquí puedes optar por mostrar un mensaje al usuario sobre el error, si lo consideras necesario.

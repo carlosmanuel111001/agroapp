@@ -11,6 +11,8 @@ import DetallePedido from '../screen/ScreenAgricultor/DetallePedido';
 import DatosRegistro from '../screen/ScreenAgricultor/DatosRegistro';
 import PerfilAgricultor from '../screen/ScreenAgricultor/PerfilAgricultor';
 import CalificacionComentario from '../screen/ScreenAgricultor/CalificacionComentario';
+import Mensaje from '../screen/ScreenAgricultor/Mensaje';
+import DetalleMensaje from '../screen/ScreenAgricultor/DetalleMensaje';
 
 const AgricultorStack = createStackNavigator();
 
@@ -69,6 +71,11 @@ const AgricultorStackNavigator = () => {
         <AgricultorStack.Screen
           name="CalificacionComentario"
           component={CalificacionComentario}
+        />
+        <AgricultorStack.Screen name="Mensaje" component={Mensaje} />
+        <AgricultorStack.Screen
+          name="DetalleMensaje"
+          component={DetalleMensaje}
         />
       </AgricultorStack.Navigator>
     );

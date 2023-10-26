@@ -10,6 +10,8 @@ import {
   Image,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
+import database from '@react-native-firebase/database';
+import storage from '@react-native-firebase/storage';
 
 import searchIcon from '../assets/visualizar.png';
 
@@ -22,32 +24,64 @@ const Mensaje = ({navigation, route}) => {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const chatsQuery = await firestore()
-          .collection('chats')
+        const chatsRef = firestore().collection('chats');
+        const chatsQuerySnapshot = await chatsRef
           .where('agricultorId', '==', userId)
           .get();
 
         const chatsData = [];
-        for (const chat of chatsQuery.docs) {
-          const messagesQuery = await chat.ref
+        const consumerPromises = [];
+
+        for (let doc of chatsQuerySnapshot.docs) {
+          const chatData = doc.data();
+
+          // Obtener el último mensaje de la subcolección messages para este chat
+          const lastMessageSnapshot = await firestore()
+            .collection('chats')
+            .doc(doc.id)
             .collection('messages')
             .orderBy('timestamp', 'desc')
             .limit(1)
             .get();
-          const lastMessage = messagesQuery.docs[0]
-            ? messagesQuery.docs[0].data()
-            : null;
+
+          let lastMessageText = 'Sin mensajes';
+
+          if (!lastMessageSnapshot.empty) {
+            const lastMessage = lastMessageSnapshot.docs[0].data();
+            lastMessageText = lastMessage.text;
+          }
+
+          const consumerPromise = database()
+            .ref(`consumidores/${chatData.consumidorId}`)
+            .once('value');
+
+          consumerPromises.push(consumerPromise);
 
           chatsData.push({
-            id: chat.id,
-            consumidorId: chat.data().consumidorId,
-            lastMessage: lastMessage ? lastMessage.text : 'Sin mensajes',
+            id: doc.id,
+            consumidorId: chatData.consumidorId,
+            lastMessage: lastMessageText,
           });
         }
+
+        const consumerSnapshots = await Promise.all(consumerPromises);
+
+        consumerSnapshots.forEach((consumerSnapshot, index) => {
+          const consumerData = consumerSnapshot.val();
+          if (consumerData) {
+            chatsData[index].consumidorName = consumerData.nombre;
+            chatsData[index].consumidorImage = consumerData.imagen; // Utiliza la URL directamente
+          } else {
+            console.warn(
+              `No se encontró el consumidor con ID: ${chatsData[index].consumidorId}`,
+            );
+          }
+        });
 
         setChats(chatsData);
         setLoading(false);
       } catch (err) {
+        console.error('Error al obtener los chats y/o imágenes:', err.message);
         setError(err);
         setLoading(false);
       }
@@ -69,18 +103,19 @@ const Mensaje = ({navigation, route}) => {
       style={styles.chatItemContainer}
       onPress={() =>
         navigation.navigate('DetalleMensaje', {
-          name: item.consumidorId,
+          name: item.consumidorName,
           message: item.lastMessage,
           chatId: item.id,
         })
       }>
       <View style={styles.userImage}>
-        <Text style={{color: 'white', fontWeight: 'bold'}}>
-          {item.consumidorId[0].toUpperCase()}
-        </Text>
+        <Image
+          source={{uri: item.consumidorImage}}
+          style={{width: 50, height: 50, borderRadius: 25}}
+        />
       </View>
       <View style={styles.chatInfo}>
-        <Text style={styles.userName}>Consumidor: {item.consumidorId}</Text>
+        <Text style={styles.userName}>Consumidor: {item.consumidorName}</Text>
         <Text style={styles.userMessage}>{item.lastMessage}</Text>
       </View>
     </TouchableOpacity>

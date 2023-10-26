@@ -16,25 +16,22 @@ const DetalleMensaje = ({navigation, route}) => {
   const {chatId, name} = route.params;
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [lastVisible, setLastVisible] = useState(null);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const messagesQuery = await firestore()
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .orderBy('timestamp', 'desc')
-          .get();
+    const messagesRef = firestore()
+      .collection('chats')
+      .doc(chatId)
+      .collection('messages')
+      .orderBy('timestamp');
 
-        const messagesData = messagesQuery.docs.map(doc => doc.data());
-        setMessages(messagesData);
-      } catch (err) {
-        console.error('Error al obtener mensajes:', err);
-      }
-    };
+    const unsubscribe = messagesRef.onSnapshot(querySnapshot => {
+      const messagesData = querySnapshot.docs.map(doc => doc.data());
+      setMessages(messagesData);
+    });
 
-    fetchMessages();
+    return () => unsubscribe();
   }, [chatId]);
 
   const handleSend = async () => {

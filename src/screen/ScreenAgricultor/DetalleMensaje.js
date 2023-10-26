@@ -10,16 +10,43 @@ import {
   Image,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
+import database from '@react-native-firebase/database';
 import userImage from '../assets/consumidor.png';
 
 const DetalleMensaje = ({navigation, route}) => {
   const {chatId, name} = route.params;
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [lastVisible, setLastVisible] = useState(null);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [consumerImageUrl, setConsumerImageUrl] = useState(null);
 
   useEffect(() => {
+    const fetchConsumerImage = async () => {
+      try {
+        const chatRef = await firestore().collection('chats').doc(chatId).get();
+        const chatData = chatRef.data();
+
+        const consumerRef = await database()
+          .ref(`consumidores/${chatData.consumidorId}`)
+          .once('value');
+        const consumerData = consumerRef.val();
+
+        if (consumerData && consumerData.imagen) {
+          setConsumerImageUrl(consumerData.imagen);
+        } else {
+          console.warn(
+            `No se encontró la imagen del consumidor con ID: ${chatData.consumidorId}`,
+          );
+        }
+      } catch (error) {
+        console.error(
+          'Error al obtener la imagen del consumidor:',
+          error.message,
+        );
+      }
+    };
+
+    fetchConsumerImage();
+
     const messagesRef = firestore()
       .collection('chats')
       .doc(chatId)
@@ -68,9 +95,13 @@ const DetalleMensaje = ({navigation, route}) => {
                 ? styles.rightMessage
                 : styles.leftMessage,
             ]}>
-            {item.sender !== 'agricultor' && (
-              <Image source={userImage} style={styles.userImage} />
-            )}
+            {item.sender !== 'agricultor' &&
+              consumerImageUrl && ( // Verifica que consumerImageUrl no sea nulo
+                <Image
+                  source={{uri: consumerImageUrl}}
+                  style={styles.userImage}
+                />
+              )}
             <View
               style={[
                 styles.messageBubble,

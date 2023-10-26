@@ -12,6 +12,11 @@ import {useNavigation} from '@react-navigation/native';
 const DetallePedido = ({route}) => {
   const navigation = useNavigation();
   const {pedido} = route.params;
+  const agricultorID =
+    pedido.cartItems && pedido.cartItems.length > 0
+      ? pedido.cartItems[0].agricultorId
+      : null;
+  console.log('ID del Agricultor:', agricultorID);
 
   return (
     <View style={styles.container}>
@@ -41,6 +46,15 @@ const DetallePedido = ({route}) => {
                 navigation.navigate('Transacion', {totalCost: pedido.totalCost})
               }
               color="#4CAF50"
+            />
+            <Button
+              title="Calificar al Agricultor"
+              onPress={() =>
+                navigation.navigate('CalificacionConsumidor', {
+                  agricultorID: agricultorID,
+                })
+              }
+              color="#FFA000"
             />
           </>
         ) : (

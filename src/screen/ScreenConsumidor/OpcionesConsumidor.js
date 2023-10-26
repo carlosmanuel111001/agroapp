@@ -26,7 +26,7 @@ const VistaOpcionesConsumidor = () => {
   };
 
   const handleCalificacionesComentariosPress = () => {
-    navigation.navigate('CalificacionConsumidor');
+    navigation.navigate('ListaCalificacionConsumidor');
   };
   const handleHistorialComprasPress = () => {
     navigation.navigate('HistorialCompras');

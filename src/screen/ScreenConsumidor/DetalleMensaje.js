@@ -4,20 +4,19 @@ import {
   Text,
   TextInput,
   Button,
-  FlatList,
   StyleSheet,
+  FlatList,
   TouchableOpacity,
   Image,
 } from 'react-native';
 import firebase from '@react-native-firebase/app';
 import '@react-native-firebase/firestore';
 
-import consumerImage from '../assets/agricultor.png';
-
 const DetalleMensaje = ({route}) => {
   const {agricultorId, consumerId} = route.params;
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [agricultorImageUrl, setAgricultorImageUrl] = useState(null);
 
   // Generamos un identificador único para el chat basado en los IDs de los usuarios.
   const chatId =
@@ -42,9 +41,32 @@ const DetalleMensaje = ({route}) => {
         setMessages(fetchedMessages);
       });
 
+    // Obtener la imagen del agricultor
+    const fetchAgricultorImage = async () => {
+      try {
+        const agricultorRef = await firebase
+          .database()
+          .ref(`agricultores/${agricultorId}`)
+          .once('value');
+        const agricultorData = agricultorRef.val();
+
+        if (agricultorData && agricultorData.imagen) {
+          setAgricultorImageUrl(agricultorData.imagen);
+        } else {
+          console.warn(
+            `No se encontró la imagen del agricultor con ID: ${agricultorId}`,
+          );
+        }
+      } catch (error) {
+        console.error('Error al obtener la imagen del agricultor:', error);
+      }
+    };
+
+    fetchAgricultorImage();
+
     // Limpiamos la suscripción al salir del componente.
     return () => unsubscribe();
-  }, [chatId, firestore]);
+  }, [chatId, firestore, agricultorId]);
 
   const handleSendMessage = async () => {
     if (!agricultorId || !consumerId || newMessage.trim() === '') {
@@ -66,6 +88,7 @@ const DetalleMensaje = ({route}) => {
         .add({
           text: newMessage,
           timestamp: timestamp,
+          sender: 'agricultor',
         });
 
       setNewMessage('');
@@ -85,24 +108,31 @@ const DetalleMensaje = ({route}) => {
             style={[
               styles.messageRow,
               item.sender === 'agricultor'
-                ? styles.rightMessage
-                : styles.leftMessage,
+                ? styles.leftMessage // Cambia a leftMessage para mensajes del agricultor
+                : styles.rightMessage, // Cambia a rightMessage para mensajes del consumidor
             ]}>
-            {item.sender !== 'agricultor' && (
-              <Image source={consumerImage} style={styles.userImage} />
+            {item.sender === 'agricultor' && agricultorImageUrl && (
+              <Image
+                source={{uri: agricultorImageUrl}}
+                style={styles.userImage}
+              />
             )}
             <View
               style={[
                 styles.messageBubble,
                 item.sender === 'agricultor'
-                  ? styles.rightBubble
-                  : styles.leftBubble,
+                  ? styles.leftBubble // Cambia a leftBubble para mensajes del agricultor
+                  : styles.rightBubble, // Cambia a rightBubble para mensajes del consumidor
+                item.sender === 'agricultor' && agricultorImageUrl
+                  ? styles.vistosoBubble // Agrega este estilo para mensajes del agricultor con imagen
+                  : null, // No aplica estilo adicional a otros mensajes
               ]}>
               <Text style={styles.messageText}>{item.text}</Text>
             </View>
           </View>
         )}
       />
+
       <View style={styles.inputContainer}>
         <TextInput
           value={newMessage}
@@ -148,10 +178,10 @@ const styles = StyleSheet.create({
     maxWidth: '80%',
   },
   rightBubble: {
-    backgroundColor: '#a8e6cf',
+    backgroundColor: '#e6e6e6',
   },
   leftBubble: {
-    backgroundColor: '#e6e6e6',
+    backgroundColor: '#a8e6cf',
   },
   messageText: {
     fontSize: 16,

@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import database from '@react-native-firebase/database';
-import userImage from '../assets/consumidor.png';
 
 const DetalleMensaje = ({navigation, route}) => {
   const {chatId, name} = route.params;

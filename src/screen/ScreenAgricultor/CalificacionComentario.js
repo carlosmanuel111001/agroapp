@@ -1,12 +1,79 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import firebase from '@react-native-firebase/app';
 
 const backIcon = require('../assets/regreso.png');
+const estrellaLlena = require('../assets/calificacion.png');
+const estrellaVacia = require('../assets/estrellas-vacias.png');
 
 const CalificacionComentario = ({navigation}) => {
-  const comentario =
-    'El producto llegó en excelentes condiciones y a tiempo. Muy recomendado.';
-  const nombreUsuario = 'Juan Pérez'; // Esto es un ejemplo.
+  const route = useRoute();
+  const [data, setData] = useState({
+    comentario: '',
+    nombreUsuario: '',
+    calificacion: '',
+  });
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const db = firebase.firestore();
+        const docRef = db.collection('calificaciones').doc(route.params.id);
+
+        const doc = await docRef.get();
+
+        if (doc.exists) {
+          const consumidorId = doc.data().consumidorId;
+
+          // Ahora, consulta la Realtime Database para obtener el nombre del usuario
+          const userRef = firebase
+            .database()
+            .ref('consumidores/' + consumidorId);
+
+          userRef
+            .once('value')
+            .then(snapshot => {
+              const userName = snapshot.val().nombre;
+
+              setData({
+                id: doc.id,
+                comentario: doc.data().comentario,
+                nombreUsuario: userName,
+                calificacion: doc.data().calificacion.toString() + '/5',
+              });
+            })
+            .catch(error => {
+              console.log('Error obteniendo el nombre del usuario:', error);
+            });
+        } else {
+          console.log('No se encontró el documento!');
+        }
+      } catch (error) {
+        console.log('Error obteniendo los datos:', error);
+      }
+    }
+    fetchData();
+  }, [route.params.id]);
+
+  // funcion para renderizar las estrellas
+  const renderStars = calificacion => {
+    let stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <Image
+          key={i}
+          source={i <= calificacion ? estrellaLlena : estrellaVacia}
+          style={styles.starImage}
+        />,
+      );
+    }
+    return stars; // No hay necesidad de envolverlas en un View, se dispondrán en vertical directamente en ratingCard.
+  };
+
+  const comentario = data.comentario || 'No se proporcionó comentario';
+  const nombreUsuario = data.nombreUsuario || 'Usuario Desconocido';
+  const calificacion = data.calificacion || '0/5';
 
   return (
     <View style={styles.container}>
@@ -30,7 +97,7 @@ const CalificacionComentario = ({navigation}) => {
           <View style={styles.divider}></View>
           <Text style={styles.cardHeader}>Calificación</Text>
           <View style={styles.ratingCard}>
-            <Text style={styles.ratingText}>4.5/5</Text>
+            {renderStars(parseInt(data.calificacion))}
           </View>
           <Text style={styles.commentHeader}>Comentario</Text>
           <View style={styles.commentCard}>
@@ -114,6 +181,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 30,
+    flexDirection: 'row', // Las estrellas se dispondrán en fila (horizontal)
+  },
+
+  starImage: {
+    width: 30,
+    height: 30,
+    marginHorizontal: 2, // El espacio estará a los lados de cada estrella
   },
   ratingText: {
     fontSize: 20,

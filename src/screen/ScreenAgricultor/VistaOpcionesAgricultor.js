@@ -24,7 +24,7 @@ const VistaOpcionesAgricultor = () => {
     navigation.navigate('GestionPago');
   };
   const handleCalificacionesComentariosPress = () => {
-    navigation.navigate('CalificacionComentario');
+    navigation.navigate('ListaCalificaciones');
   };
   const handleHistorialVentasPress = () => {
     navigation.navigate('HistorialVentas');

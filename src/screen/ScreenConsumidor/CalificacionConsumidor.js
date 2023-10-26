@@ -131,7 +131,9 @@ const CalificacionConsumidor = ({navigation}) => {
 
       <View style={styles.content}>
         <View style={styles.card}>
-          <Text style={styles.cardHeader}>Califica a {agricultorName}</Text>
+          <Text style={styles.cardHeader}>
+            Califica al Agricultor {agricultorName}
+          </Text>
 
           {/* Aquí puedes agregar un sistema de calificación (por ejemplo, estrellas) y actualizar el estado `calificacion` cuando el usuario seleccione una calificación */}
           <View style={{flexDirection: 'row'}}>
@@ -140,7 +142,7 @@ const CalificacionConsumidor = ({navigation}) => {
                 <Image
                   source={
                     num <= calificacion
-                      ? require('../assets/estrellas-llenas.png')
+                      ? require('../assets/calificacion.png')
                       : require('../assets/estrellas-vacias.png')
                   }
                   style={{width: 30, height: 30, margin: 5}}

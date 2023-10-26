@@ -103,7 +103,7 @@ const VistaPrincipalConsumidor = ({navigation}) => {
     navigation.navigate('OpcionesConsumidor');
   };
   const handleMessagePress = () => {
-    navigation.navigate('ConsumidorMensaje'); // Asegúrate de que el nombre aquí coincide con el nombre que le diste en el stack navigator.
+    navigation.navigate('ConsumidorMensaje', {consumerId: consumerId}); // Asegúrate de que el nombre aquí coincide con el nombre que le diste en el stack navigator.
   };
 
   const handleSearchPress = () => {

@@ -26,7 +26,7 @@ const ConsumidorMensaje = ({navigation, route}) => {
         console.log('Comenzando a buscar chats con consumerId:', userId);
         const chatsRef = firestore().collection('chats');
         const chatsQuerySnapshot = await chatsRef
-          .where('consumerId', '==', userId) // Cambiar el campo si es necesario
+          .where('consumidorId', '==', userId)
           .get();
 
         const chatsData = [];
@@ -105,9 +105,9 @@ const ConsumidorMensaje = ({navigation, route}) => {
       style={styles.chatItemContainer}
       onPress={() =>
         navigation.navigate('DetalleMensaje', {
-          name: item.agricultorName,
-          message: item.lastMessage,
-          chatId: item.id,
+          agricultorId: item.agricultorId,
+          consumerId: userId,
+          profileImage: item.agricultorImage,
         })
       }>
       <View style={styles.userImage}>

@@ -13,7 +13,7 @@ import firebase from '@react-native-firebase/app';
 import '@react-native-firebase/firestore';
 
 const DetalleMensaje = ({route}) => {
-  const {agricultorId, consumerId} = route.params;
+  const {agricultorId, consumerId, profileImage} = route.params;
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [agricultorImageUrl, setAgricultorImageUrl] = useState(null);

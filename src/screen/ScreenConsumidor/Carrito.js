@@ -63,7 +63,7 @@ const CarritoDeCompras = ({route, navigation}) => {
           <TouchableOpacity
             onPress={() =>
               navigation.navigate('DetalleCarrito', {
-                productos: groupedCart[item.agricultorId],
+                productos: groupedCart[item.agricultorId], // Solo productos del mismo agricultor
                 userId: item.userId,
                 agricultorId: item.agricultorId,
                 consumerId: route.params.consumerId,

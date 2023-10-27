@@ -24,7 +24,6 @@ export const CartProvider = ({children}) => {
     loadCartFromStorage();
   }, []);
 
-  // Este useEffect observa los cambios en el carrito y los almacena.
   useEffect(() => {
     if (!cart || cart.length === 0) return;
     const storeCart = async () => {
@@ -53,8 +52,15 @@ export const CartProvider = ({children}) => {
     }
   };
 
+  const removeProductsByAgricultorId = agricultorId => {
+    handleSetCart(prevCart =>
+      prevCart.filter(product => product.agricultorId !== agricultorId),
+    );
+  };
+
   return (
-    <CartContext.Provider value={{cart, setCart: handleSetCart}}>
+    <CartContext.Provider
+      value={{cart, setCart: handleSetCart, removeProductsByAgricultorId}}>
       {children}
     </CartContext.Provider>
   );

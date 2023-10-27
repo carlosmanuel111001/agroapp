@@ -20,6 +20,13 @@ const DetalleCarrito = ({route, navigation}) => {
   const [nombre, setNombre] = useState('');
   const [telefono, setTelefono] = useState('');
   const [correo, setCorreo] = useState('');
+  const [filteredCart, setFilteredCart] = useState([]);
+  useEffect(() => {
+    const filtered = cart.filter(
+      product => product.agricultorId === agricultorId,
+    );
+    setFilteredCart(filtered);
+  }, [cart, agricultorId]);
   // Consulta Realtime Database para obtener los datos del consumidor
   useEffect(() => {
     const loadConsumerData = async () => {
@@ -96,7 +103,7 @@ const DetalleCarrito = ({route, navigation}) => {
     }
   }, [userId, agricultorId]);
 
-  const totalCost = cart.reduce((acc, prod) => {
+  const totalCost = filteredCart.reduce((acc, prod) => {
     let precio = parseFloat(prod.precioProducto) || 0;
     let cantidadSeleccionada = Number(prod.cantidadSeleccionada) || 1;
 
@@ -158,20 +165,26 @@ const DetalleCarrito = ({route, navigation}) => {
   const handlePedido = () => {
     // Crear un objeto que represente la orden
     const orderData = {
-      cartItems: cart,
+      cartItems: filteredCart, // Usar filteredCart en lugar de cart
       totalCost: totalCost,
       agricultorInfo: agricultorInfo,
       date: firestore.Timestamp.fromDate(new Date()),
       consumerInfo: {
-        consumerId: consumerId, // Agrega el ID del consumidor aquí
-        consumerName: nombre, // Agrega el nombre del consumidor
-        consumerPhone: telefono, // Agrega el teléfono del consumidor
-        consumerEmail: correo, // Agrega el correo electrónico del consumidor
+        consumerId: consumerId,
+        consumerName: nombre,
+        consumerPhone: telefono,
+        consumerEmail: correo,
       },
     };
 
     // Llamar a la función para enviar la orden a Firestore
     submitOrderToFirestore(orderData);
+
+    // Elimina sólo los productos del agricultor del carrito
+    const updatedCart = cart.filter(
+      product => product.agricultorId !== agricultorId,
+    );
+    setCart(updatedCart);
 
     // Navegar de regreso a la vista principal del consumidor
     navigation.navigate('VistaPrincipalConsumidor');
@@ -196,10 +209,10 @@ const DetalleCarrito = ({route, navigation}) => {
   const handleNavigateToMain = () => {
     navigation.navigate('VistaPrincipalConsumidor'); // Cambia 'VistaPrincipal' con el nombre correcto de tu vista principal si es diferente.
   };
-  // Funcion que envia los datos del carrito a firestore
+  // Esta función toma los datos del pedido y los envía a la colección "orders" en Firestore.
   const submitOrderToFirestore = async orderData => {
     try {
-      console.log('Enviando pedido a Firestore:', orderData); // Agrega este console.log
+      console.log('Enviando pedido a Firestore:', orderData);
       await firestore().collection('orders').add(orderData);
       Alert.alert('Pedido enviado', 'Tu pedido ha sido enviado con éxito');
     } catch (error) {
@@ -255,7 +268,7 @@ const DetalleCarrito = ({route, navigation}) => {
       </View>
       <FlatList
         contentContainerStyle={styles.listaContenido}
-        data={cart}
+        data={filteredCart}
         keyExtractor={item => item.id}
         renderItem={({item}) => (
           <View style={styles.itemProducto}>

@@ -88,7 +88,7 @@ const DetalleMensaje = ({route}) => {
         .add({
           text: newMessage,
           timestamp: timestamp,
-          sender: 'agricultor',
+          sender: 'consumer',
         });
 
       setNewMessage('');
@@ -107,9 +107,9 @@ const DetalleMensaje = ({route}) => {
           <View
             style={[
               styles.messageRow,
-              item.sender === 'agricultor'
-                ? styles.leftMessage // Cambia a leftMessage para mensajes del agricultor
-                : styles.rightMessage, // Cambia a rightMessage para mensajes del consumidor
+              item.sender === 'consumer'
+                ? styles.rightMessage
+                : styles.leftMessage,
             ]}>
             {item.sender === 'agricultor' && agricultorImageUrl && (
               <Image
@@ -120,12 +120,12 @@ const DetalleMensaje = ({route}) => {
             <View
               style={[
                 styles.messageBubble,
-                item.sender === 'agricultor'
-                  ? styles.leftBubble // Cambia a leftBubble para mensajes del agricultor
-                  : styles.rightBubble, // Cambia a rightBubble para mensajes del consumidor
+                item.sender === 'consumer'
+                  ? styles.rightBubble
+                  : styles.leftBubble,
                 item.sender === 'agricultor' && agricultorImageUrl
-                  ? styles.vistosoBubble // Agrega este estilo para mensajes del agricultor con imagen
-                  : null, // No aplica estilo adicional a otros mensajes
+                  ? styles.vistosoBubble
+                  : null,
               ]}>
               <Text style={styles.messageText}>{item.text}</Text>
             </View>
@@ -156,14 +156,19 @@ const styles = StyleSheet.create({
   messageRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: '100%',
     marginVertical: 5,
     paddingHorizontal: 10,
   },
+
   rightMessage: {
     justifyContent: 'flex-end',
+    alignItems: 'center',
   },
+
   leftMessage: {
     justifyContent: 'flex-start',
+    alignItems: 'center',
   },
   userImage: {
     width: 40,

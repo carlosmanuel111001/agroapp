@@ -17,6 +17,7 @@ const DetalleMensaje = ({route}) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [agricultorImageUrl, setAgricultorImageUrl] = useState(null);
+  const [agricultorName, setAgricultorName] = useState(null);
 
   // Generamos un identificador único para el chat basado en los IDs de los usuarios.
   const chatId =
@@ -42,7 +43,7 @@ const DetalleMensaje = ({route}) => {
       });
 
     // Obtener la imagen del agricultor
-    const fetchAgricultorImage = async () => {
+    const fetchAgricultorData = async () => {
       try {
         const agricultorRef = await firebase
           .database()
@@ -50,19 +51,25 @@ const DetalleMensaje = ({route}) => {
           .once('value');
         const agricultorData = agricultorRef.val();
 
-        if (agricultorData && agricultorData.imagen) {
-          setAgricultorImageUrl(agricultorData.imagen);
+        if (agricultorData) {
+          if (agricultorData.imagen) {
+            setAgricultorImageUrl(agricultorData.imagen);
+          }
+          if (agricultorData.nombre) {
+            // Asumiendo que el campo para el nombre es 'nombre'.
+            setAgricultorName(agricultorData.nombre);
+          }
         } else {
           console.warn(
-            `No se encontró la imagen del agricultor con ID: ${agricultorId}`,
+            `No se encontró información del agricultor con ID: ${agricultorId}`,
           );
         }
       } catch (error) {
-        console.error('Error al obtener la imagen del agricultor:', error);
+        console.error('Error al obtener los datos del agricultor:', error);
       }
     };
 
-    fetchAgricultorImage();
+    fetchAgricultorData();
 
     // Limpiamos la suscripción al salir del componente.
     return () => unsubscribe();
@@ -99,6 +106,11 @@ const DetalleMensaje = ({route}) => {
 
   return (
     <View style={styles.container}>
+      {agricultorName && (
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerText}>Chateando con {agricultorName}</Text>
+        </View>
+      )}
       <FlatList
         inverted
         data={messages}
@@ -217,6 +229,19 @@ const styles = StyleSheet.create({
   sendButtonText: {
     color: 'white',
     fontSize: 16,
+  },
+  headerContainer: {
+    backgroundColor: '#5DDCAE',
+    padding: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  headerText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 

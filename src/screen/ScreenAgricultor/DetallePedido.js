@@ -14,24 +14,24 @@ const DetallePedido = ({navigation}) => {
   const route = useRoute();
   const currentData = route.params?.currentData;
   const [docData, setDocData] = useState(null);
+  const [consumerName, setConsumerName] = useState('');
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const doc = await firebase
-          .firestore()
-          .collection('orders')
-          .doc(currentData.id)
-          .get();
-        if (doc.exists) setDocData(doc.data());
-        else console.warn('No such document!');
-      } catch (error) {
-        console.error('Error fetching document:', error);
-      }
-    };
+    const unsubscribe = navigation.addListener('focus', () => {
+      const orderData = route.params?.currentData;
 
-    fetchData();
-  }, [currentData.id]);
+      if (orderData) {
+        console.log('Order Data:', JSON.stringify(orderData));
+        setConsumerName(orderData.consumerInfo.consumerName);
+        console.log(
+          'Setting Consumer Name:',
+          orderData.consumerInfo.consumerName,
+        );
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, route.params.currentData]);
 
   const updateOrderStatus = async status => {
     try {
@@ -58,6 +58,7 @@ const DetallePedido = ({navigation}) => {
     <View style={styles.container}>
       <Header navigation={navigation} orderId={currentData?.id} />
       <ClientData
+        consumerName={consumerName}
         clientInfo={currentData?.agricultorInfo}
         orderDate={currentData?.date}
       />
@@ -84,15 +85,19 @@ const Header = ({navigation, orderId}) => (
   </View>
 );
 
-const ClientData = ({clientInfo, orderDate}) => (
-  <>
-    <DataContainer label="Cliente:" data={clientInfo?.nombre} />
-    <DataContainer
-      label="Fecha:"
-      data={new Date(orderDate?.seconds * 1000).toLocaleDateString()}
-    />
-  </>
-);
+const ClientData = ({consumerName, clientInfo, orderDate}) => {
+  console.log('Nombre del consumidor:', consumerName); // Aquí agregas la instrucción console.log
+
+  return (
+    <>
+      <DataContainer label="Consumidor:" data={consumerName || 'Desconocido'} />
+      <DataContainer
+        label="Fecha:"
+        data={new Date(orderDate?.seconds * 1000).toLocaleDateString()}
+      />
+    </>
+  );
+};
 
 const ProductList = ({cartItems}) => (
   <>

@@ -33,6 +33,7 @@ const GestionPedido = ({navigation}) => {
   const renderItem = ({item}) => (
     <TouchableOpacity
       onPress={() => {
+        console.log('Order Data:', item);
         navigation.navigate('DetallePedido', {currentData: item});
       }}>
       <View style={styles.row}>

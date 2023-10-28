@@ -20,7 +20,6 @@ const InicioSesion = ({route}) => {
   const navigation = useNavigation();
 
   const handleLogin = () => {
-    console.log('handleLogin ha sido invocado'); // Mensaje para saber que inició la función
     let userId; // Declarar userId aquí
 
     firebase
@@ -36,7 +35,6 @@ const InicioSesion = ({route}) => {
           .once('value');
       })
       .then(snapshot => {
-        console.log('Snapshot obtenido con éxito:', snapshot.val());
         const userData = snapshot.val();
 
         if (!userData) {

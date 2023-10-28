@@ -55,7 +55,6 @@ const VistaPrincipalConsumidor = ({navigation}) => {
         if (user) {
           const consumerId = user.uid; // Cambiado a consumerId
           setConsumerId(consumerId); // Almacena el ID del consumidor en el estado
-          console.log('ID del Consumidor:', consumerId); // Imprime el ID del consumidor en la consola
         }
       } catch (error) {
         console.error('Error al obtener el ID del consumidor:', error);
@@ -201,15 +200,17 @@ const VistaPrincipalConsumidor = ({navigation}) => {
             setTextoBusqueda(text);
             if (!text.trim()) {
               setProductos(listaOriginalProductos);
+            } else {
+              const productosFiltrados = listaOriginalProductos.filter(
+                producto =>
+                  producto.nombreProducto
+                    .toLowerCase()
+                    .includes(text.toLowerCase()),
+              );
+              setProductos(productosFiltrados);
             }
           }}
         />
-        <TouchableOpacity onPress={handleSearchPress}>
-          <Image
-            source={require('../assets/visualizar.png')}
-            style={styles.searchImage}
-          />
-        </TouchableOpacity>
       </View>
       <SectionList
         sections={secciones}

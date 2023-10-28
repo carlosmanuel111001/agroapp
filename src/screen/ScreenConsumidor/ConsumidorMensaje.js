@@ -19,11 +19,12 @@ const ConsumidorMensaje = ({navigation, route}) => {
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredChats, setFilteredChats] = useState([]);
 
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        console.log('Comenzando a buscar chats con consumerId:', userId);
         const chatsRef = firestore().collection('chats');
         const chatsQuerySnapshot = await chatsRef
           .where('consumidorId', '==', userId)
@@ -33,9 +34,7 @@ const ConsumidorMensaje = ({navigation, route}) => {
         const agricultorPromises = [];
 
         for (let doc of chatsQuerySnapshot.docs) {
-          console.log('Documento de chat encontrado:', doc.data());
           const chatData = doc.data();
-          console.log('Datos del chat:', chatData);
           setChats(chatsData);
 
           const lastMessageSnapshot = await firestore()
@@ -81,6 +80,7 @@ const ConsumidorMensaje = ({navigation, route}) => {
         });
 
         setChats(chatsData);
+        setFilteredChats(chatsData); // Esto se añade para inicializar los chats filtrados
         setLoading(false);
       } catch (err) {
         console.error('Error al obtener los chats y/o imágenes:', err.message);
@@ -91,6 +91,17 @@ const ConsumidorMensaje = ({navigation, route}) => {
 
     fetchChats();
   }, [userId]);
+  // Esta función filtra los chats basándose en el nombre del agricultor
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = chats.filter(chat =>
+        chat.agricultorName.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+      setFilteredChats(filtered);
+    } else {
+      setFilteredChats(chats);
+    }
+  }, [searchTerm, chats]);
 
   if (loading) {
     return <ActivityIndicator size="large" color="#5DDCAE" />;
@@ -140,10 +151,15 @@ const ConsumidorMensaje = ({navigation, route}) => {
       </View>
       <View style={styles.searchContainer}>
         <Image source={searchIcon} style={styles.searchIcon} />
-        <TextInput placeholder="Buscar..." style={styles.searchInput} />
+        <TextInput
+          placeholder="Buscar..."
+          style={styles.searchInput}
+          onChangeText={text => setSearchTerm(text)}
+          value={searchTerm}
+        />
       </View>
       <FlatList
-        data={chats}
+        data={filteredChats} // Cambio de chats a filteredChats
         renderItem={renderItem}
         keyExtractor={item => item.id}
       />

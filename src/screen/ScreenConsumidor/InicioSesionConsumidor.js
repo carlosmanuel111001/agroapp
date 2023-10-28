@@ -20,7 +20,6 @@ const InicioSesionConsumidor = ({route}) => {
   const navigation = useNavigation();
 
   const handleLogin = () => {
-    console.log('handleLogin ha sido invocado'); // Mensaje para saber que inició la función
     let userId; // Declarar userId aquí
 
     firebase
@@ -28,7 +27,6 @@ const InicioSesionConsumidor = ({route}) => {
       .signInWithEmailAndPassword(email, password)
       .then(userCredential => {
         const user = userCredential.user;
-        console.log('Usuario autenticado con éxito:', user);
         userId = user.uid; // Imprimirá el objeto del usuario autenticado
         // Continuamos con la verificación del rol después de actualizar
         return firebase

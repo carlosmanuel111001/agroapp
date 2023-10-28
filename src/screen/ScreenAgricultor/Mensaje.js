@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import database from '@react-native-firebase/database';
-import storage from '@react-native-firebase/storage';
 
 import searchIcon from '../assets/visualizar.png';
 
@@ -20,6 +19,7 @@ const Mensaje = ({navigation, route}) => {
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchChats = async () => {
@@ -120,6 +120,10 @@ const Mensaje = ({navigation, route}) => {
       </View>
     </TouchableOpacity>
   );
+  const filteredChats = chats.filter(chat => {
+    if (!chat.consumidorName) return false;
+    return chat.consumidorName.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   return (
     <View style={styles.container}>
@@ -138,10 +142,15 @@ const Mensaje = ({navigation, route}) => {
       </View>
       <View style={styles.searchContainer}>
         <Image source={searchIcon} style={styles.searchIcon} />
-        <TextInput placeholder="Buscar..." style={styles.searchInput} />
+        <TextInput
+          placeholder="Buscar..."
+          style={styles.searchInput}
+          value={searchTerm}
+          onChangeText={text => setSearchTerm(text)}
+        />
       </View>
       <FlatList
-        data={chats}
+        data={filteredChats}
         renderItem={renderItem}
         keyExtractor={item => item.id}
       />

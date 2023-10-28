@@ -2,31 +2,66 @@ import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
+  Image,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Image,
-  Button,
-  ScrollView,
-  Modal,
+  TextInput,
+  Platform,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
 import database from '@react-native-firebase/database';
 import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
+import {useNavigation} from '@react-navigation/native';
+import storage from '@react-native-firebase/storage';
+import {launchImageLibrary} from 'react-native-image-picker';
+
+const InfoCard = ({
+  label,
+  field,
+  value,
+  isEditing,
+  setEditing,
+  editData,
+  setEditData,
+  handleSave,
+  editable = true,
+}) => (
+  <View style={styles.card}>
+    <Text style={styles.cardLabel}>{label}</Text>
+    {isEditing === field && editable ? ( // <-- Añadimos la condición editable aquí
+      <View>
+        <TextInput
+          value={editData[field] ?? value}
+          onChangeText={text =>
+            setEditData(prevData => ({...prevData, [field]: text}))
+          }
+          style={styles.editableText}
+        />
+        <TouchableOpacity
+          onPress={() => handleSave(field)}
+          style={styles.buttonStyle}>
+          <Text style={{color: '#fff'}}>Guardar</Text>
+        </TouchableOpacity>
+      </View>
+    ) : (
+      <TouchableOpacity onPress={() => editable && setEditing(field)}>
+        <Text
+          style={isEditing === field ? styles.editingText : styles.cardValue}>
+          {value}
+        </Text>
+      </TouchableOpacity>
+    )}
+  </View>
+);
 
 const PerfilAgricultor = () => {
-  const [data, setData] = useState(null); // Estado para los datos del agricultor
+  const [data, setData] = useState(null);
+  const [editData, setEditData] = useState({});
+  const [image, setImage] = useState(null);
+  const [loadingImage, setLoadingImage] = useState(false);
+  const [isEditing, setIsEditing] = useState(null);
   const userId = auth().currentUser?.uid;
-  const [productos, setProductos] = useState([]);
-  const [selectedProducts, setSelectedProducts] = useState([]);
-
   const navigation = useNavigation();
-  const [showInfo, setShowInfo] = useState(false); // Estado para mostrar la información personal
-  const [selectedSection, setSelectedSection] = useState('personalInfo'); // 'personalInfo' o 'photos'
-  const [isPhotosModalVisible, setPhotosModalVisibility] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState(null); // Estado para saber qué foto fue seleccionada.
-  const [isModalVisible, setIsModalVisible] = useState(false); // Estado para saber si el modal está activo o no.
-  const [selectedInfo, setSelectedInfo] = useState(null); // Estado para saber qué info fue seleccionada.
 
   useEffect(() => {
     if (!userId) return;
@@ -36,516 +71,241 @@ const PerfilAgricultor = () => {
       setData(snapshot.val());
     });
 
-    return () => {
-      ref.off('value', onValueChange);
-    };
+    return () => ref.off('value', onValueChange);
   }, [userId]);
 
-  useEffect(() => {
-    const unsubscribe = firestore()
-      .collection('Productos')
-      .where('userId', '==', userId)
-      .onSnapshot(querySnapshot => {
-        const productosData = [];
-        querySnapshot.forEach(doc => {
-          const producto = doc.data();
-          producto.id = doc.id; // Agrega el ID del documento al producto
-          productosData.push(producto);
-        });
-        setProductos(productosData);
-      });
-
-    return () => unsubscribe();
-  }, [userId]);
-
-  const handleBackPress = () => {
-    navigation.goBack();
-  };
-  const handlePersonalInfoPress = () => {
-    setSelectedSection('personalInfo');
-  };
-  const handlePhotosPress = () => {
-    setPhotosModalVisibility(true);
-  };
-  const handlePhotoSelect = photo => {
-    setSelectedPhoto(photo);
-    setIsModalVisible(true);
-
-    // Verifica si la foto seleccionada es la de perfil
-    if (photo === data?.fotoPerfil) {
-      // Si es la foto de perfil, muestra la lista de fotos de productos
-      const productPhotos = productos.map(producto => producto.imagen);
-      setSelectedProducts(productPhotos);
-    } else {
-      // Si es una foto de producto, muestra solo esa foto en el modal
-      setSelectedProducts([photo]);
+  const handleSave = async field => {
+    if (!editData[field]) return;
+    try {
+      await database()
+        .ref(`agricultores/${userId}`)
+        .update({[field]: editData[field]});
+      setIsEditing(null);
+    } catch (error) {
+      console.error('Error updating data:', error);
     }
   };
-  const handleExit = () => {
-    setIsModalVisible(false); // Oculta el modal
-    setSelectedPhoto(null); // Limpia la selección de foto
-  };
-  const handleInfoSelect = infoName => {
-    setSelectedInfo(infoName);
-    setIsModalVisible(true);
-  };
 
-  // Funciones para editar, eliminar y guardar.
-  const handleEdit = () => {
-    alert('Editar');
-  };
+  const selectAndUploadImage = async () => {
+    launchImageLibrary({}, async response => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else {
+        const source = {uri: response.uri};
+        setImage(source); // setea la imagen seleccionada para que se muestre en la UI
+        const imageName = `${userId}_${Date.now()}.jpg`;
+        const uploadUri =
+          Platform.OS === 'ios'
+            ? response.uri.replace('file://', '')
+            : response.uri;
+        const reference = storage().ref(`/profile_images/${imageName}`);
 
-  const handleDelete = () => {
-    alert('Eliminar');
+        try {
+          setLoadingImage(true); // comenzamos el loading
+          await reference.putFile(uploadUri);
+          const imageURL = await reference.getDownloadURL();
+          await database()
+            .ref(`agricultores/${userId}`)
+            .update({imagen: imageURL});
+          setImage(null); // reseteamos el estado de image
+        } catch (error) {
+          console.error('Error uploading image: ', error);
+        } finally {
+          setLoadingImage(false); // finalizamos el loading
+        }
+      }
+    });
   };
-
-  const handleSave = () => {
-    alert('Guardar');
-  };
-  const handleSavePress = () => {
-    // Aquí puedes agregar la lógica para guardar la información.
-    alert('Información guardada'); // Esto es solo un ejemplo. Puedes reemplazarlo con tu lógica.
-  };
-
   return (
     <View style={styles.container}>
-      <View style={styles.topSection}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}>
+          <Image
+            source={require('../assets/regreso.png')}
+            style={{width: 24, height: 24}}
+          />
+        </TouchableOpacity>
+        <Text style={styles.headerText}>Perfil del Agricultor</Text>
+        <View style={{width: 24}} />
+      </View>
+      <ScrollView style={styles.content}>
+        <TouchableOpacity onPress={selectAndUploadImage}>
+          {image || data?.imagen ? (
             <Image
-              source={require('../assets/regreso.png')}
-              style={styles.backImage}
+              source={image || {uri: data.imagen}}
+              style={styles.profilePicture}
             />
-          </TouchableOpacity>
-          <Text style={styles.headerText}>Perfil</Text>
-        </View>
-        <View style={styles.profilePictureContainer}>
-          <Image source={{uri: data?.imagen}} style={styles.profilePicture} />
-        </View>
-      </View>
-      <View style={styles.nameContainer}>
-        <Text style={styles.name}>{data?.nombre + ' ' + data?.apellidos}</Text>
-        <Text style={styles.description}>{data?.descripcion}</Text>
-
-        <View style={styles.buttonsContainer}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handlePersonalInfoPress}>
-            <Text style={styles.buttonText}>Información Personal</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={handlePhotosPress}>
-            <Text style={styles.buttonText}>Fotos</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      <ScrollView style={styles.cardContainer}>
-        {selectedSection === 'personalInfo' && (
-          <>
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => handleInfoSelect('personalInfo')}>
-              <Image
-                source={require('../assets/personal.png')}
-                style={styles.cardIcon}
-              />
-              <Text style={[styles.cardTitle, styles.text]}>
-                Información Personal
-              </Text>
-
-              <View style={styles.subCard}>
-                <Text style={styles.title}>Nombre:</Text>
-                <Text style={[styles.details, styles.text]}>
-                  {data?.nombre + ' ' + data?.apellidos}
-                </Text>
-              </View>
-
-              <View style={styles.subCard}>
-                <Text style={styles.title}>Email:</Text>
-                <Text style={[styles.details, styles.text]}>
-                  {data?.correo}
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => handleInfoSelect('productos')}>
-              <Image
-                source={require('../assets/productos.png')}
-                style={styles.cardIcon}
-              />
-              <Text style={styles.cardTitle}>Productos</Text>
-              {productos.map((producto, index) => (
-                <View style={styles.subCard} key={index}>
-                  <Text style={styles.productName}>
-                    {producto.nombreProducto}
-                  </Text>
-                  <Text style={styles.productDetails}>
-                    Cantidad: {producto.cantidadProducto}kg
-                  </Text>
-                  <Text style={styles.productDetails}>
-                    Precio: ${producto.precioProducto}
-                  </Text>
-                </View>
-              ))}
-            </TouchableOpacity>
-
-            <View style={styles.card}>
-              <Image
-                source={require('../assets/ubicacion.png')}
-                style={styles.cardIcon}
-              />
-              <Text style={styles.cardTitle}>Ubicación</Text>
-
-              {/* Mostrando la dirección aquí */}
-              <Text style={styles.text}>Dirección: {data?.direccion}</Text>
-            </View>
-          </>
-        )}
-
-        {selectedSection === 'photos' && (
-          <View style={styles.photosContainer}>
-            {['foto1', 'foto2', 'foto3', 'foto4'].map((photo, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.photoCard}
-                onPress={() => handlePhotoSelect(photo)}>
-                <Text>{photo}</Text>
-                {/* Si tienes imágenes, puedes usar el componente Image aquí para mostrar cada foto */}
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      </ScrollView>
-      <Modal
-        animationType="slide"
-        transparent={false}
-        visible={isPhotosModalVisible}
-        onRequestClose={() => {
-          setPhotosModalVisibility(false);
-        }}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Fotos del Agricultor</Text>
-
-          {/* Foto de perfil */}
-          <Image source={{uri: data?.imagen}} style={styles.fotoPerfil} />
-
-          {/* Fotos de productos (Este es un ejemplo, debes ajustarlo según tus datos) */}
-          {data?.productos &&
-            data.productos.map((producto, index) => (
-              <Image
-                key={index}
-                source={{uri: producto.imagen}}
-                style={styles.fotoProducto}
-              />
-            ))}
-
-          {/* Botón para cerrar el modal */}
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setPhotosModalVisibility(false)}>
-            <Text style={styles.closeButtonText}>Cerrar</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-      {isModalVisible && (
-        <View style={styles.modalContainer}>
-          {selectedSection === 'personalInfo' ? (
-            <View style={styles.selectedInfoContainer}>
-              <Text>Información seleccionada: {selectedInfo}</Text>
-            </View>
           ) : (
-            <View style={styles.selectedPhotoContainer}>
-              <Text>Imagen seleccionada: {selectedPhoto}</Text>
+            <View style={styles.profilePicturePlaceholder}>
+              <Text>Select Image</Text>
             </View>
           )}
-
-          <View style={styles.buttonsModalContainer}>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.editButton]}
-              onPress={handleEdit}>
-              <Text style={styles.modalButtonText}>Editar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.deleteButton]}
-              onPress={handleDelete}>
-              <Text style={styles.modalButtonText}>Eliminar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.saveButtonModal]}
-              onPress={handleSave}>
-              <Text style={styles.modalButtonText}>Guardar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.exitButton]}
-              onPress={handleExit}>
-              <Text style={styles.modalButtonText}>Salir</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      <View style={styles.saveButtonContainer}>
-        <TouchableOpacity style={styles.saveButton} onPress={handleSavePress}>
-          <Text style={styles.saveButtonText}>Guardar</Text>
+          {loadingImage && <Text>Subiendo imagen...</Text>}
         </TouchableOpacity>
-      </View>
+        <InfoCard
+          label="Nombre"
+          field="nombre"
+          value={data?.nombre}
+          isEditing={isEditing}
+          setEditing={setIsEditing}
+          editData={editData}
+          setEditData={setEditData}
+          handleSave={handleSave}
+        />
+        <InfoCard
+          label="Apellidos"
+          field="apellidos"
+          value={data?.apellidos}
+          isEditing={isEditing}
+          setEditing={setIsEditing}
+          editData={editData}
+          setEditData={setEditData}
+          handleSave={handleSave}
+        />
+        <InfoCard
+          label="Correo"
+          field="correo"
+          value={data?.correo}
+          isEditing={isEditing}
+          setEditing={setIsEditing}
+          editData={editData}
+          setEditData={setEditData}
+          handleSave={handleSave}
+          editable={false}
+        />
+        <InfoCard
+          label="Descripción de la granja"
+          field="descripcion"
+          value={data?.descripcion}
+          isEditing={isEditing}
+          setEditing={setIsEditing}
+          editData={editData}
+          setEditData={setEditData}
+          handleSave={handleSave}
+        />
+        <InfoCard
+          label="Dirección"
+          field="direccion"
+          value={data?.direccion}
+          isEditing={isEditing}
+          setEditing={setIsEditing}
+          editData={editData}
+          setEditData={setEditData}
+          handleSave={handleSave}
+        />
+        <InfoCard
+          label="Teléfono"
+          field="telefono"
+          value={data?.telefono}
+          isEditing={isEditing}
+          setEditing={setIsEditing}
+          editData={editData}
+          setEditData={setEditData}
+          handleSave={handleSave}
+        />
+        <InfoCard
+          label="Rol"
+          field="rol"
+          value={data?.rol}
+          isEditing={isEditing}
+          setEditing={setIsEditing}
+          editData={editData}
+          setEditData={setEditData}
+          handleSave={handleSave}
+          editable={false}
+        />
+      </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {flex: 1},
-  topSection: {
+  container: {
     flex: 1,
-    backgroundColor: '#5DDCAE',
+    backgroundColor: '#f4f4f4',
   },
   header: {
+    backgroundColor: '#4CAF50',
+    padding: 15,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  headerText: {
-    fontSize: 25,
-    fontWeight: 'bold',
-    color: 'black',
+    justifyContent: 'space-between', // Añade esta línea
   },
   backButton: {
-    position: 'absolute',
-    left: 20,
-    top: 15,
+    marginRight: 15,
   },
-  backImage: {
-    width: 30,
-    height: 25,
+  headerText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
-  profilePictureContainer: {
-    position: 'absolute',
-    alignSelf: 'center',
-    top: '50%',
-    backgroundColor: '#ffffff',
-    borderRadius: 50,
-    overflow: 'hidden',
+  content: {
+    padding: 10,
   },
   profilePicture: {
     width: 120,
     height: 120,
-  },
-  // espacio entre los dos botones
-  nameContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    paddingBottom: 20, // Añade un espacio debajo de los botones
-  },
-  name: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'black',
-  },
-  description: {
-    fontSize: 16,
-    marginTop: 5,
-    color: 'black',
-  },
-  buttonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 30,
-    marginBottom: 15, // Añade espacio entre los botones y las tarjetas
-  },
-  button: {
+    borderRadius: 60,
+    alignSelf: 'center',
+    marginBottom: 15,
     backgroundColor: '#5DDCAE',
-    paddingVertical: 20,
-    paddingHorizontal: 35,
-    borderRadius: 5,
-    marginHorizontal: 5,
-  },
-  buttonText: {
-    color: 'black',
-    fontWeight: 'bold',
   },
   card: {
-    backgroundColor: '#f0f0f0', // Fondo gris para las tarjetas
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10, // Espacio entre tarjetas
-    width: '90%', // Ancho reducido
-    alignSelf: 'center', // Centra la tarjeta
-    borderColor: 'black', // Color del borde
-    borderWidth: 1, // Ancho del borde
-  },
-  cardTitle: {
-    fontWeight: 'bold',
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 10,
+    elevation: 2, // añade una sombra en Android
+    shadowOffset: {width: 0, height: 1}, // añade una sombra en iOS
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
     marginBottom: 10,
-    textAlign: 'left',
-    color: 'black',
-  },
-  bottomSection: {
-    flex: 0.2,
-    backgroundColor: 'black', // Fondo blanco para la sección inferior
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cardContainer: {
-    backgroundColor: 'white', // Fondo blanco para el contenedor de las tarjetas
-    flex: 1, // Ocupa el espacio disponible
-    marginHorizontal: 10,
-    marginTop: 30,
-    borderColor: 'transparent', // Borde transparente
-    borderWidth: 0, // Ancho del borde
-  },
-  saveButtonContainer: {
-    padding: 20,
-    alignItems: 'center',
-    backgroundColor: 'white', // Puedes ajustar el color según tus necesidades
-  },
-  saveButton: {
-    backgroundColor: '#5DDCAE',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
-  saveButtonText: {
-    color: 'black',
-    fontWeight: 'bold',
-  },
-  cardIcon: {
-    width: 20, // puedes ajustar el tamaño
-    height: 20, // puedes ajustar el tamaño
-    marginRight: 10, // espacio a la derecha del icono
-  },
-  photosContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  photoCard: {
-    width: '48%', // Esto permite que dos tarjetas (cada una del 48% de ancho) más un 4% de espacio total entre ellas, ocupen el 100% del ancho del contenedor.
-    aspectRatio: 1, // Mantiene la proporción 1:1 (cuadrado)
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8, // Espacio en la parte inferior de cada tarjeta.
-    backgroundColor: '#f0f0f0',
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#d4d4d4',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-    elevation: 3,
-  },
-  modalContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.7)', // Fondo semi transparente
-  },
-  selectedPhotoContainer: {
-    width: '80%',
-    height: '40%',
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderColor: 'black',
+    borderColor: '#ddd', // añade un borde ligero
     borderWidth: 1,
   },
-  // Contenedor de los botones del modal
-  buttonsModalContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '90%',
-    marginTop: 20,
-  },
-  modalButton: {
-    padding: 10,
+  buttonStyle: {
+    padding: 8,
+    backgroundColor: '#4CAF50',
     borderRadius: 5,
-    marginHorizontal: 5, // margen entre botones
-    flex: 1, // para que todos los botones ocupen el mismo espacio
-    alignItems: 'center',
+    alignSelf: 'flex-end',
   },
-  modalButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+  cardLabel: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 5,
   },
-  editButton: {
-    backgroundColor: 'blue',
+  cardValue: {
+    fontSize: 16,
+    color: '#333',
   },
-  deleteButton: {
-    backgroundColor: 'red',
+  editingText: {
+    fontSize: 16,
+    color: '#FFA726', // un color que destaque cuando esté en modo de edición
   },
-  saveButtonModal: {
-    backgroundColor: 'green',
-  },
-  exitButton: {
-    backgroundColor: 'gray',
-  },
-  selectedInfoContainer: {
-    width: '80%',
-    height: '40%',
-    backgroundColor: 'black',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderColor: 'black',
+  editableText: {
+    borderColor: '#ddd',
     borderWidth: 1,
-  },
-  text: {
-    color: 'black',
-  },
-  subCard: {
-    backgroundColor: 'white', // Fondo blanco
-    marginVertical: 5, // Espaciado vertical entre las sub-tarjetas
-    borderRadius: 5, // Bordes redondeados
-    padding: 10, // Padding interno
-    shadowColor: '#000', // Sombra
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
-    elevation: 4,
-  },
-  productName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  productDetails: {
+    padding: 8,
+    borderRadius: 5,
+    marginBottom: 10,
     fontSize: 16,
   },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+  saveButton: {
+    color: '#4CAF50',
+    textAlign: 'right',
   },
-  fotoPerfil: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    margin: 10,
-  },
-  fotoProducto: {
-    width: 80,
-    height: 80,
-    margin: 5,
-  },
-  closeButton: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: '#2196F3',
-    borderRadius: 5,
-  },
-  closeButtonText: {
-    color: '#FFF',
+  profilePicturePlaceholder: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignSelf: 'center',
+    marginBottom: 15,
+    backgroundColor: '#ddd',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

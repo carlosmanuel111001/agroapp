@@ -183,11 +183,6 @@ const VistaPrincipalConsumidor = ({navigation}) => {
             source={require('../assets/carrito.png')}
             style={styles.icon}
           />
-          {cartItemsCount > 0 && (
-            <View style={styles.cartCounter}>
-              <Text style={styles.cartCounterText}>{cartItemsCount}</Text>
-            </View>
-          )}
         </TouchableOpacity>
       </View>
 

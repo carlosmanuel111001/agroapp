@@ -1,6 +1,14 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import firebase from '@react-native-firebase/app';
 
 const VistaOpcionesConsumidor = () => {
   const navigation = useNavigation();
@@ -10,9 +18,34 @@ const VistaOpcionesConsumidor = () => {
   };
 
   const handleLogout = () => {
-    // Aquí puedes colocar la lógica para cerrar la sesión
-    console.log('Cerrar sesión presionado');
+    Alert.alert(
+      'Cerrar Sesión', // Título
+      '¿Estás seguro de que deseas cerrar la sesión?', // Mensaje
+      [
+        {
+          text: 'No',
+          onPress: () => console.log('Cancelar'),
+          style: 'cancel',
+        },
+        {
+          text: 'Sí',
+          onPress: () => {
+            firebase
+              .auth()
+              .signOut()
+              .then(() => {
+                navigation.navigate('PantallaRol');
+              })
+              .catch(error => {
+                console.error('Error al cerrar la sesión:', error);
+              });
+          },
+        },
+      ],
+      {cancelable: false}, // Esto evita que el usuario cierre el Alert tocando fuera de la ventana
+    );
   };
+
   const handleGestionPedidoPress = () => {
     navigation.navigate('ListaPedidos');
   };

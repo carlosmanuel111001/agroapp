@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 import {CartContext} from '../ScreenCompartidas/CarritoContext';
 
 import firestore from '@react-native-firebase/firestore';
+import firebase from '@react-native-firebase/app';
 
 const firestoreDb = firestore();
 
@@ -18,6 +19,24 @@ const DescripcionProducto = ({route, navigation}) => {
   const {selectedProduct} = route.params;
   const {consumerId} = selectedProduct;
   const agricultorId = selectedProduct.userId;
+  const [agricultor, setAgricultor] = React.useState(null);
+
+  useEffect(() => {
+    const agricultorRef = firebase
+      .database()
+      .ref('agricultores/' + agricultorId);
+
+    agricultorRef.on('value', snapshot => {
+      const data = snapshot.val();
+      if (data) {
+        setAgricultor(data);
+      } else {
+        console.log('El agricultor no existe en la base de datos');
+      }
+    });
+
+    return () => agricultorRef.off(); // Desvincula el listener cuando el componente se desmonta
+  }, [agricultorId]);
 
   if (!selectedProduct) {
     return <Text>Error: No se pudo cargar el producto</Text>;
@@ -36,7 +55,6 @@ const DescripcionProducto = ({route, navigation}) => {
       productPrice: selectedProduct.price,
     });
   };
-  console.log(firestore);
   const chatId =
     agricultorId < consumerId
       ? agricultorId + consumerId
@@ -138,6 +156,10 @@ const DescripcionProducto = ({route, navigation}) => {
         <Text style={styles.label}>ID del Agricultor:</Text>
         <Text style={styles.agricultorIdText}>
           {selectedProduct.userId || 'No disponible'}
+        </Text>
+        <Text style={styles.label}>Nombre del Agricultor:</Text>
+        <Text style={styles.dataText}>
+          {agricultor ? agricultor.nombre : 'Cargando...'}
         </Text>
       </View>
 

@@ -124,7 +124,6 @@ const VistaPrincipal = ({route}) => {
       Alert.alert('Atención', 'Por favor, ingrese el nombre del producto.');
       return;
     }
-    console.log('Texto de búsqueda:', pedidoSearch);
 
     try {
       const productosSnapshot = await firestore()
@@ -136,8 +135,6 @@ const VistaPrincipal = ({route}) => {
         id: doc.id,
         nombre: doc.data().nombreProducto,
       }));
-
-      console.log('Resultados de la búsqueda:', productosEncontrados);
 
       setResultadosBusqueda(productosEncontrados);
     } catch (error) {

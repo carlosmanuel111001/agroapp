@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import firebase from '@react-native-firebase/app';
 
 const DetallePedido = ({route}) => {
   const navigation = useNavigation();
@@ -16,7 +17,45 @@ const DetallePedido = ({route}) => {
     pedido.cartItems && pedido.cartItems.length > 0
       ? pedido.cartItems[0].agricultorId
       : null;
-  console.log('ID del Agricultor:', agricultorID);
+  const [agricultorEmail, setAgricultorEmail] = useState(null);
+  const productNames = pedido.cartItems
+    .map(item => item.nombreProducto)
+    .join(', ');
+  useEffect(() => {
+    if (agricultorID) {
+      const agricultorRef = firebase
+        .database()
+        .ref('agricultores/' + agricultorID);
+      agricultorRef.on('value', snapshot => {
+        const agricultorData = snapshot.val();
+        if (agricultorData) {
+          setAgricultorEmail(agricultorData.correo);
+        }
+      });
+
+      // Limpiar listener al desmontar el componente
+      return () => agricultorRef.off();
+    }
+  }, [agricultorID]);
+
+  const tipoDeCambio = 36.1;
+  const calcularComision = monto => {
+    return monto * 0.03;
+  };
+
+  const convertirADolares = montoEnPesos => {
+    return montoEnPesos / tipoDeCambio;
+  };
+  const pagarAhora = () => {
+    const comision = calcularComision(pedido.totalCost);
+    const totalEnDolares = convertirADolares(pedido.totalCost - comision);
+    navigation.navigate('Transacion', {
+      totalCost: totalEnDolares,
+      agricultorID: agricultorID,
+      agricultorEmail: agricultorEmail,
+      productNames: productNames,
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -32,7 +71,6 @@ const DetallePedido = ({route}) => {
         <Text style={styles.headerTitle}>Detalle del Pedido</Text>
         <View style={styles.backButton}></View>
       </View>
-
       <View style={styles.card}>
         {pedido.estado === 'aceptado' ? (
           <>
@@ -40,13 +78,7 @@ const DetallePedido = ({route}) => {
             <Text style={styles.subTitle}>
               Tu pedido ha sido aceptado por {pedido.agricultorInfo.nombre}
             </Text>
-            <Button
-              title="Pagar Ahora"
-              onPress={() =>
-                navigation.navigate('Transacion', {totalCost: pedido.totalCost})
-              }
-              color="#4CAF50"
-            />
+            <Button title="Pagar Ahora" onPress={pagarAhora} color="#4CAF50" />
             <Button
               title="Calificar al Agricultor"
               onPress={() =>
@@ -78,11 +110,11 @@ const DetallePedido = ({route}) => {
             <View style={styles.productDetails}>
               <Text style={styles.productName}>{item.nombreProducto}</Text>
               <Text>Cantidad: {item.cantidadSeleccionada}</Text>
-              <Text>Precio: ${item.precioProducto}</Text>
+              <Text>Precio: C${item.precioProducto}</Text>
             </View>
           </View>
         ))}
-        <Text style={styles.totalCost}>Costo total: ${pedido.totalCost}</Text>
+        <Text style={styles.totalCost}>Costo total: C${pedido.totalCost}</Text>
       </View>
     </View>
   );
@@ -106,11 +138,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   headerTitle: {
-    flex: 1, // Esto permitirá que el título tome el espacio disponible.
+    flex: 1,
     fontSize: 22,
     fontWeight: 'bold',
     color: '#2E7D32',
-    textAlign: 'center', // Esto centrará el texto.
+    textAlign: 'center',
   },
   backButton: {
     width: 25,

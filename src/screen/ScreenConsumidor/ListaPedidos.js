@@ -8,7 +8,7 @@ import {
   Image,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
-import DetallePedido from './DetallePedido';
+import auth from '@react-native-firebase/auth';
 import {useNavigation} from '@react-navigation/native';
 
 const ListaPedidos = () => {
@@ -21,9 +21,32 @@ const ListaPedidos = () => {
 
   useEffect(() => {
     const obtenerPedidos = async () => {
-      const snapshot = await firestore().collection('orders').get();
-      if (!snapshot.empty) {
-        setPedidos(snapshot.docs.map(doc => doc.data()));
+      try {
+        // Obteniendo el usuario autenticado
+        const currentUser = auth().currentUser;
+
+        if (!currentUser) {
+          console.log('No hay usuario autenticado.');
+          return;
+        }
+
+        // Obteniendo el UID del usuario autenticado
+        const consumerId = currentUser.uid;
+        console.log('ID del consumidor:', consumerId);
+
+        // Realizando la consulta filtrada por el UID del consumidor
+        const snapshot = await firestore()
+          .collection('orders')
+          .where('consumerInfo.consumerId', '==', consumerId)
+          .get();
+
+        if (!snapshot.empty) {
+          setPedidos(snapshot.docs.map(doc => ({...doc.data(), id: doc.id})));
+        } else {
+          console.log('No se encontraron pedidos para este consumidor.');
+        }
+      } catch (error) {
+        console.error('Error al obtener pedidos:', error);
       }
     };
 

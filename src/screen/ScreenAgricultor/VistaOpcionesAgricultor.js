@@ -1,7 +1,8 @@
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
-import {TouchableOpacity, Image} from 'react-native';
+import {TouchableOpacity, Image, Alert} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import firebase from '@react-native-firebase/app';
 
 const VistaOpcionesAgricultor = () => {
   const navigation = useNavigation();
@@ -12,9 +13,36 @@ const VistaOpcionesAgricultor = () => {
   const handleBackPress = () => {
     navigation.goBack();
   };
+  //funcion para cerrar sesion
   const handleLogout = () => {
-    // Aquí puedes colocar la lógica para cerrar la sesión
-    console.log('Cerrar sesión presionado');
+    Alert.alert(
+      'Cerrar Sesión',
+      '¿Estás seguro de que quieres cerrar sesión?',
+      [
+        {
+          text: 'Cancelar',
+          onPress: () => console.log('Cancelado'),
+          style: 'cancel',
+        },
+        {
+          text: 'Sí',
+          onPress: () => {
+            // Lógica para cerrar sesión con Firebase
+            firebase
+              .auth()
+              .signOut()
+              .then(() => {
+                console.log('Sesión cerrada');
+                navigation.navigate('PantallaRol'); // Redirige a PantallaRol después de cerrar sesión
+              })
+              .catch(error => {
+                console.error('Error al cerrar sesión: ', error);
+              });
+          },
+        },
+      ],
+      {cancelable: false},
+    );
   };
   // Función para manejar el toque en la opción de perfil
   const handleProfilePress = () => {

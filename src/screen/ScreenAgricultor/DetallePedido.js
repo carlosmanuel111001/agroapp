@@ -15,18 +15,29 @@ const DetallePedido = ({navigation}) => {
   const currentData = route.params?.currentData;
   const [docData, setDocData] = useState(null);
   const [consumerName, setConsumerName] = useState('');
+  const [orderStatus, setOrderStatus] = useState(null);
+  useEffect(() => {
+    // Obtener el estado del pedido de la base de datos y actualizar el estado
+    if (currentData?.id) {
+      firebase
+        .firestore()
+        .collection('orders')
+        .doc(currentData.id)
+        .get()
+        .then(documentSnapshot => {
+          if (documentSnapshot.exists) {
+            setOrderStatus(documentSnapshot.data().estado);
+          }
+        });
+    }
+  }, [currentData]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       const orderData = route.params?.currentData;
 
       if (orderData) {
-        console.log('Order Data:', JSON.stringify(orderData));
         setConsumerName(orderData.consumerInfo.consumerName);
-        console.log(
-          'Setting Consumer Name:',
-          orderData.consumerInfo.consumerName,
-        );
       }
     });
 
@@ -52,6 +63,7 @@ const DetallePedido = ({navigation}) => {
         `Hubo un error al ${status} el pedido. Por favor intenta de nuevo.`,
       );
     }
+    setOrderStatus(status);
   };
 
   return (
@@ -63,10 +75,16 @@ const DetallePedido = ({navigation}) => {
         orderDate={currentData?.date}
       />
       <ProductList cartItems={currentData?.cartItems} />
-      <ActionButtons
-        onAccept={() => updateOrderStatus('aceptado')}
-        onDecline={() => updateOrderStatus('rechazado')}
-      />
+      {orderStatus ? (
+        <Text style={{textAlign: 'center', marginTop: 20}}>
+          Pedido {orderStatus}.
+        </Text>
+      ) : (
+        <ActionButtons
+          onAccept={() => updateOrderStatus('aceptado')}
+          onDecline={() => updateOrderStatus('rechazado')}
+        />
+      )}
     </View>
   );
 };
@@ -86,8 +104,6 @@ const Header = ({navigation, orderId}) => (
 );
 
 const ClientData = ({consumerName, clientInfo, orderDate}) => {
-  console.log('Nombre del consumidor:', consumerName); // Aquí agregas la instrucción console.log
-
   return (
     <>
       <DataContainer label="Consumidor:" data={consumerName || 'Desconocido'} />

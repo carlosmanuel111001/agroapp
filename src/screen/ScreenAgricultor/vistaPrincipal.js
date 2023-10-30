@@ -11,6 +11,8 @@ import {
   Alert,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
+import firebase from '@react-native-firebase/app';
+
 import {useNavigation} from '@react-navigation/native';
 
 const VistaPrincipal = ({route}) => {
@@ -61,6 +63,7 @@ const VistaPrincipal = ({route}) => {
   const handleEditPress = productoId => {
     navigation.navigate('EditarProducto', {id: productoId});
   };
+  //funcion para cerrar la sesion y salir
   const handleLogOut = () => {
     Alert.alert(
       'Confirmación',
@@ -73,13 +76,23 @@ const VistaPrincipal = ({route}) => {
         },
         {
           text: 'Sí',
-          onPress: () => {
-            console.log('Salir');
-            // Navega de regreso a la pantalla de inicio de sesión
-            navigation.reset({
-              index: 0,
-              routes: [{name: 'PantallaRol'}], // Asegúrate de usar el nombre correcto de tu pantalla de inicio
-            });
+          onPress: async () => {
+            try {
+              // Cerrar sesión en Firebase
+              await firebase.auth().signOut();
+
+              // Navega de regreso a la pantalla de inicio de sesión
+              navigation.reset({
+                index: 0,
+                routes: [{name: 'PantallaRol'}],
+              });
+            } catch (error) {
+              console.error('Error al cerrar sesión:', error);
+              Alert.alert(
+                'Error',
+                'No se pudo cerrar sesión. Por favor, inténtalo de nuevo.',
+              );
+            }
           },
         },
       ],

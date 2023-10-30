@@ -2,13 +2,21 @@ import React, {useState, useEffect} from 'react';
 import {TouchableOpacity} from 'react-native';
 import {View, Text, StyleSheet, Image, FlatList} from 'react-native';
 import firestore from '@react-native-firebase/firestore';
+import {Picker} from '@react-native-picker/picker';
 
 const GestionPedido = ({navigation}) => {
   const handleBackPress = () => {
-    console.log('Back pressed!');
     navigation.goBack();
   };
-
+  const [filter, setFilter] = useState('todos');
+  <Picker
+    selectedValue={filter}
+    onValueChange={itemValue => setFilter(itemValue)}>
+    <Picker.Item label="Todos" value="todos" />
+    <Picker.Item label="Aceptados" value="aceptado" />
+    <Picker.Item label="Rechazados" value="rechazado" />
+    <Picker.Item label="Pendientes" value="pendiente" />
+  </Picker>;
   // Datos de ejemplo. Estos probablemente vendrán de la base de datos.
   const [orders, setOrders] = useState([]); // Usamos un estado para los pedidos
   //obtener los pedidos de Firestore y de actualizar el estado local con esos pedidos.
@@ -30,15 +38,25 @@ const GestionPedido = ({navigation}) => {
     return () => subscriber();
   }, []);
 
+  const getRowStyle = estado => {
+    switch (estado) {
+      case 'aceptado':
+        return [styles.row, {backgroundColor: '#D1FFD6'}]; // Verde claro para aceptados
+      case 'rechazado':
+        return [styles.row, {backgroundColor: '#FFD1D1'}]; // Rojo claro para rechazados
+      default:
+        return [styles.row, {backgroundColor: '#FFFCD1'}]; // Amarillo claro para pendientes
+    }
+  };
+
   const renderItem = ({item}) => (
     <TouchableOpacity
       onPress={() => {
-        console.log('Order Data:', item);
         navigation.navigate('DetallePedido', {currentData: item});
       }}>
-      <View style={styles.row}>
-        <Text style={styles.cell}>{item.id}</Text>
-        <Text style={styles.cell}>{item.agricultorInfo.name}</Text>
+      <View style={getRowStyle(item.estado)}>
+        {/* Cambiado para mostrar el nombre del consumidor */}
+        <Text style={styles.cell}>{item.consumerInfo.consumerName}</Text>
         <Text style={styles.cell}>
           {item.date.toDate().toLocaleDateString()}
         </Text>
@@ -49,7 +67,6 @@ const GestionPedido = ({navigation}) => {
   const HeaderRow = () => {
     return (
       <View style={styles.headerRow}>
-        <Text style={styles.headerCell}>ID</Text>
         <Text style={styles.headerCell}>Cliente</Text>
         <Text style={styles.headerCell}>Fecha</Text>
         <Text style={styles.headerCell}>Total</Text>
@@ -76,7 +93,11 @@ const GestionPedido = ({navigation}) => {
       <View style={styles.contentContainer}>
         <HeaderRow />
         <FlatList
-          data={orders}
+          data={
+            filter === 'todos'
+              ? orders
+              : orders.filter(order => order.estado === filter)
+          }
           renderItem={renderItem}
           keyExtractor={item => item.id}
         />

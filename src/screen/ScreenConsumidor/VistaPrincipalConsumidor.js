@@ -146,13 +146,20 @@ const VistaPrincipalConsumidor = ({navigation}) => {
         },
         {
           text: 'Sí',
-          onPress: () => {
-            console.log('Salir');
-            // Navega de regreso a la pantalla de inicio de sesión
-            navigation.reset({
-              index: 0,
-              routes: [{name: 'PantallaRol'}], // Asegúrate de usar el nombre correcto de tu pantalla de inicio
-            });
+          onPress: async () => {
+            try {
+              // Cierra la sesión en Firebase
+              await firebase.auth().signOut();
+
+              // Navega de regreso a la pantalla de inicio de sesión
+              navigation.reset({
+                index: 0,
+                routes: [{name: 'PantallaRol'}], // Asegúrate de usar el nombre correcto de tu pantalla de inicio
+              });
+            } catch (error) {
+              console.error('Error al cerrar sesión:', error);
+              Alert.alert('Error', 'Hubo un problema al cerrar sesión.');
+            }
           },
         },
       ],

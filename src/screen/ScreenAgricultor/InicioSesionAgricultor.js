@@ -20,40 +20,54 @@ const InicioSesion = ({route}) => {
   const navigation = useNavigation();
 
   const handleLogin = () => {
-    let userId; // Declarar userId aquí
+    let userId;
 
     firebase
       .auth()
       .signInWithEmailAndPassword(email, password)
       .then(userCredential => {
         const user = userCredential.user;
-        userId = user.uid; // Imprimirá el objeto del usuario autenticado
-        // Continuamos con la verificación del rol después de actualizar
+        userId = user.uid;
+        // Primero verifica si es un administrador
         return firebase
           .database()
-          .ref(`agricultores/${userId}`) // Usamos userId aquí
+          .ref(`administradores/${userId}`)
           .once('value');
       })
       .then(snapshot => {
         const userData = snapshot.val();
 
-        if (!userData) {
+        if (userData && userData.rol === 'administrador') {
+          // Si es un administrador, redirige a la vista de administrador
           console.log(
-            'No se encontraron datos para el usuario en la base de datos',
+            "Usuario es un administrador. Intentando navegar a 'vistaPrincipalAdministrador'...",
           );
-          throw new Error(
-            'No se encontraron datos para el usuario en la base de datos',
-          );
-        }
-
-        if (userData.rol === 'agricultor') {
-          console.log(
-            "Usuario es un agricultor. Intentando navegar a 'vistaPrincipal'...",
-          );
-          navigation.navigate('vistaPrincipal', {userId: userId}); // Aquí pasas el UID
+          navigation.navigate('VistaAdmin', {userId: userId});
         } else {
-          console.log('Usuario no es un agricultor o no se encontró el rol');
-          throw new Error('Acceso denegado. No eres un agricultor.');
+          // Si no es un administrador, verifica si es un agricultor
+          return firebase
+            .database()
+            .ref(`agricultores/${userId}`)
+            .once('value');
+        }
+      })
+      .then(snapshot => {
+        if (snapshot) {
+          const userData = snapshot.val();
+
+          if (userData && userData.rol === 'agricultor') {
+            // Si es un agricultor, redirige a la vista de agricultor
+            console.log(
+              "Usuario es un agricultor. Intentando navegar a 'vistaPrincipal'...",
+            );
+            navigation.navigate('vistaPrincipal', {userId: userId});
+          } else {
+            // Si no es ni un administrador ni un agricultor, lanza un error
+            console.log(
+              'Usuario no es un agricultor ni un administrador o no se encontró el rol',
+            );
+            throw new Error('Acceso denegado. Rol no reconocido.');
+          }
         }
       })
       .catch(error => {

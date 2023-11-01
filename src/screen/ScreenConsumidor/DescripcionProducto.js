@@ -129,6 +129,16 @@ const DescripcionProducto = ({route, navigation}) => {
         <Text style={styles.dataText}>{selectedProduct.tipoProducto}</Text>
         <Text style={styles.label}>Nombre de Producto:</Text>
         <Text style={styles.productName}>{selectedProduct.nombreProducto}</Text>
+        {selectedProduct.promoDescription &&
+          selectedProduct.promoDescription.descripcionPromocion &&
+          selectedProduct.promoDescription.descripcionPromocion !== '' && (
+            <>
+              <Text style={styles.label}>Promoción:</Text>
+              <Text style={styles.promotionText}>
+                {selectedProduct.promoDescription.descripcionPromocion}
+              </Text>
+            </>
+          )}
         <Text style={styles.label}>Descripcion:</Text>
         <Text style={styles.productDescription}>
           {selectedProduct.descripcionProducto ||
@@ -312,6 +322,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#555',
     marginBottom: 10, // Consistente con el espaciado.
+  },
+  promotionText: {
+    fontSize: 18,
+    color: '#ff4500', // Un color naranja vibrante
+    fontWeight: 'bold',
+    backgroundColor: '#fff0e6', // Un ligero fondo naranja para resaltar aún más
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ff4500',
+    shadowColor: '#ff4500',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    elevation: 4,
+    marginVertical: 10,
+    textAlign: 'center', // centra el texto en el contenedor
   },
 });
 

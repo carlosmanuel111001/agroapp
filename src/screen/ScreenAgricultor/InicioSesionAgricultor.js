@@ -57,9 +57,6 @@ const InicioSesion = ({route}) => {
 
           if (userData && userData.rol === 'agricultor') {
             // Si es un agricultor, redirige a la vista de agricultor
-            console.log(
-              "Usuario es un agricultor. Intentando navegar a 'vistaPrincipal'...",
-            );
             navigation.navigate('vistaPrincipal', {userId: userId});
           } else {
             // Si no es ni un administrador ni un agricultor, lanza un error

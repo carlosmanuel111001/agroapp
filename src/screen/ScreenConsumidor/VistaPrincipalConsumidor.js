@@ -35,11 +35,17 @@ const FilaDeTarjetas = ({productos, handleCardClick}) => (
           <Text style={styles.descripcionDelProducto}>
             {producto.nombreProducto}
           </Text>
+          {producto.promoDescription &&
+          producto.promoDescription.descripcionPromocion &&
+          producto.promoDescription.descripcionPromocion !== '' ? (
+            <View style={styles.promoContainer}>
+              <Text style={styles.promoText}>🔥 En promoción</Text>
+            </View>
+          ) : null}
         </TouchableOpacity>
       ))}
   </View>
 );
-
 const VistaPrincipalConsumidor = ({navigation}) => {
   const [productos, setProductos] = useState([]);
   const [listaOriginalProductos, setListaOriginalProductos] = useState([]);
@@ -433,6 +439,23 @@ const styles = StyleSheet.create({
     width: '100%',
     height: cardWidth * 0.75,
     backgroundColor: '#F2F3F4',
+  },
+  promoContainer: {
+    backgroundColor: '#FF5733', // Un color naranja brillante.
+    borderRadius: 5, // Esquinas redondeadas.
+    marginTop: 5, // Espacio superior.
+    paddingHorizontal: 5, // Espacio horizontal.
+    paddingVertical: 3, // Espacio vertical.
+    shadowColor: '#000',
+    shadowOffset: {width: 1, height: 1},
+    shadowOpacity: 0.3,
+    shadowRadius: 1,
+    elevation: 3, // Para Android.
+  },
+  promoText: {
+    color: 'white', // Texto en blanco.
+    fontSize: 12,
+    fontWeight: 'bold', // Texto en negrita.
   },
 });
 

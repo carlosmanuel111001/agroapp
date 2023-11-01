@@ -57,9 +57,6 @@ const InicioSesionConsumidor = ({route}) => {
 
           if (userData && userData.rol === 'consumidor') {
             // Si es un consumidor, redirige a la vista de consumidor
-            console.log(
-              "Usuario es un consumidor. Intentando navegar a 'VistaPrincipalConsumidor'...",
-            );
             navigation.navigate('VistaPrincipalConsumidor', {
               consumerId: userId,
             });

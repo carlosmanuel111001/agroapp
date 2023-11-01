@@ -38,11 +38,24 @@ const InicioSesionConsumidor = ({route}) => {
         const userData = snapshot.val();
 
         if (userData && userData.rol === 'administrador') {
-          // Si es un administrador, redirige a la vista de administrador
-          console.log(
-            "Usuario es un administrador. Intentando navegar a 'vistaPrincipalAdministrador'...",
+          // Si es un administrador, muestra una alerta
+          Alert.alert(
+            'Acceso concedido',
+            'Tú eres el administrador. A continuación navegarás al panel del administrador.',
+            [
+              {
+                text: 'Aceptar',
+                onPress: () => {
+                  // Una vez aceptada la alerta, redirige a la vista de administrador
+                  console.log(
+                    "Usuario es un administrador. Intentando navegar a 'vistaPrincipalAdministrador'...",
+                  );
+                  navigation.navigate('VistaAdmin', {userId: userId});
+                },
+              },
+            ],
+            {cancelable: false},
           );
-          navigation.navigate('VistaAdmin', {userId: userId});
         } else {
           // Si no es un administrador, verifica si es un consumidor
           return firebase

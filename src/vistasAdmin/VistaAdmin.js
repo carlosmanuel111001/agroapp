@@ -1,38 +1,47 @@
 import React from 'react';
-import {View, StyleSheet, ScrollView} from 'react-native';
-import {Appbar, Card, Title, Paragraph, IconButton} from 'react-native-paper';
+import {View, StyleSheet, ScrollView, TouchableOpacity} from 'react-native';
+import {Appbar, Card, Title, Paragraph} from 'react-native-paper';
 
-const VistaAdmin = () => {
+const VistaAdmin = ({navigation}) => {
+  const handleNavigateToDetails = type => {
+    if (type === 'agricultores') {
+      navigation.navigate('ListaAgricultores');
+    } else if (type === 'consumidores') {
+      navigation.navigate('ListaConsumidores');
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Appbar.Header>
+      <Appbar.Header style={styles.header}>
         <Appbar.Content title="Panel Administrador" subtitle="Bienvenido" />
         <Appbar.Action icon="cog-outline" onPress={() => {}} />
       </Appbar.Header>
       <ScrollView style={styles.content}>
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title>Usuarios Registrados</Title>
-            <Paragraph>
-              Visualiza y administra los usuarios registrados en la plataforma.
-            </Paragraph>
-          </Card.Content>
-          <Card.Actions>
-            <IconButton icon="arrow-right" onPress={() => {}} />
-          </Card.Actions>
-        </Card>
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title>Reportes</Title>
-            <Paragraph>
-              Revisa los reportes y estadísticas de la aplicación.
-            </Paragraph>
-          </Card.Content>
-          <Card.Actions>
-            <IconButton icon="arrow-right" onPress={() => {}} />
-          </Card.Actions>
-        </Card>
-        {/* Agrega más tarjetas o secciones según sea necesario */}
+        <TouchableOpacity
+          onPress={() => handleNavigateToDetails('agricultores')}>
+          <Card style={styles.card}>
+            <Card.Content>
+              <Title style={styles.cardTitle}>Agricultores</Title>
+              <Paragraph style={styles.cardDescription}>
+                Visualiza y administra los agricultores registrados en la
+                plataforma.
+              </Paragraph>
+            </Card.Content>
+          </Card>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => handleNavigateToDetails('consumidores')}>
+          <Card style={styles.card}>
+            <Card.Content>
+              <Title style={styles.cardTitle}>Consumidores</Title>
+              <Paragraph style={styles.cardDescription}>
+                Visualiza y administra los consumidores registrados en la
+                plataforma.
+              </Paragraph>
+            </Card.Content>
+          </Card>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -41,13 +50,29 @@ const VistaAdmin = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#e6f2ff',
+  },
+  header: {
+    backgroundColor: '#4CAF50',
   },
   content: {
     padding: 16,
   },
   card: {
-    marginBottom: 16,
-    elevation: 4,
+    marginBottom: 20,
+    elevation: 5,
+    borderRadius: 15,
+    backgroundColor: '#ffffff',
+    overflow: 'hidden',
+  },
+  cardTitle: {
+    fontSize: 20,
+    color: '#344955',
+    marginBottom: 5,
+  },
+  cardDescription: {
+    fontSize: 14,
+    color: '#4a4a4a',
   },
 });
 

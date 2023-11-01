@@ -39,7 +39,7 @@ const EditarProducto = () => {
     mostrarDatePicker: false,
     descuentoProducto: '',
     ubicacion: '',
-    // ...otros campos del producto
+    promoDescription: {descripcionPromocion: ''},
   });
 
   useEffect(() => {
@@ -62,7 +62,9 @@ const EditarProducto = () => {
             fecha: productoData.fecha?.toDate() || new Date(),
             descuentoProducto: productoData.descuentoProducto || 0,
             ubicacion: productoData.ubicacion || '',
-            // ...otros campos del producto
+            promoDescription: productoData.promoDescription || {
+              descripcionPromocion: '',
+            },
           });
         } else {
           console.log('Producto no encontrado');
@@ -158,6 +160,48 @@ const EditarProducto = () => {
       console.error('Error al seleccionar imagen:', error);
     }
   };
+  //funcion para eliminar la promocion del producto
+  const handleEliminarPromocion = () => {
+    Alert.alert(
+      'Eliminar promoción',
+      '¿Estás seguro que deseas eliminar esta promoción?',
+      [
+        {
+          text: 'No',
+          style: 'cancel',
+        },
+        {
+          text: 'Sí',
+          onPress: async () => {
+            // Actualizar el estado del producto para eliminar la promoción
+            setProducto(prevState => ({
+              ...prevState,
+              promoDescription: {descripcionPromocion: ''},
+            }));
+
+            // Actualizar en Firestore
+            try {
+              await firestore().collection('Productos').doc(id).update({
+                'promoDescription.descripcionPromocion':
+                  firestore.FieldValue.delete(), // Esto eliminará el campo
+              });
+
+              Alert.alert(
+                'Promoción eliminada',
+                'La promoción ha sido eliminada exitosamente.',
+              );
+            } catch (error) {
+              console.error('Error al eliminar la promoción: ', error);
+              Alert.alert(
+                'Error',
+                'Hubo un error al eliminar la promoción. Por favor, inténtalo de nuevo.',
+              );
+            }
+          },
+        },
+      ],
+    );
+  };
   const handleSalir = () => {
     navigation.goBack();
   };
@@ -237,6 +281,18 @@ const EditarProducto = () => {
           setProducto({...producto, descuentoProducto: parseFloat(text)})
         }
       />
+      {/* Verificar si el producto tiene una descripción de promoción y, de ser así, mostrarla */}
+      {producto.promoDescription.descripcionPromocion !== '' && (
+        <TouchableOpacity
+          style={styles.promocionContainer}
+          onPress={handleEliminarPromocion} // Agregar un manejador de evento aquí
+        >
+          <Text style={styles.promocionText}>¡Promoción!</Text>
+          <Text style={styles.promocionDescuentoText}>
+            {producto.promoDescription.descripcionPromocion}
+          </Text>
+        </TouchableOpacity>
+      )}
 
       <Text style={styles.label}>Ubicación:</Text>
       <TextInput
@@ -333,6 +389,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     backgroundColor: '#f9f9f9', // Un fondo gris claro para indicar que es seleccionable
     justifyContent: 'center',
+  },
+  promocionContainer: {
+    padding: 10,
+    marginVertical: 10,
+    backgroundColor: '#FFD700',
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  promocionText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#D2691E',
+  },
+  promocionDescuentoText: {
+    fontSize: 16,
+    marginTop: 5,
   },
 });
 

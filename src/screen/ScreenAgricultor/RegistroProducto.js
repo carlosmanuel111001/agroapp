@@ -36,6 +36,8 @@ const RegistroProducto = ({route}) => {
   const [descuentoProducto, setDescuentoProducto] = useState('');
   const [ubicacion, setUbicacion] = useState(null);
   const [region, setRegion] = useState(null);
+  const [addPromo, setAddPromo] = useState(false);
+  const [promoDescription, setPromoDescription] = useState('');
 
   const options = {
     mediaType: 'photo',
@@ -82,8 +84,32 @@ const RegistroProducto = ({route}) => {
       console.error('Error al seleccionar imagen:', error);
     }
   };
-
   async function subirProducto() {
+    if (addPromo && !promoDescription.trim()) {
+      Alert.alert('Error', 'Por favor ingresa la descripción de la promoción.');
+      return;
+    }
+    finalizarRegistro(); // Si todo está bien, procede al registro final del producto.
+  }
+
+  const askForPromotion = () => {
+    Alert.alert(
+      'Promoción',
+      '¿Deseas agregar una promoción al producto?',
+      [
+        {
+          text: 'No',
+          onPress: () => finalizarRegistro(), // Registrar producto sin promoción.
+        },
+        {
+          text: 'Sí',
+          onPress: () => setAddPromo(true), // Solo muestra el campo de promoción.
+        },
+      ],
+      {cancelable: false},
+    );
+  };
+  async function finalizarRegistro() {
     console.log('UserId:', userId);
     const userId =
       auth().currentUser &&
@@ -102,7 +128,7 @@ const RegistroProducto = ({route}) => {
     }
 
     try {
-      const nombreProductoLowerCase = nombreProducto.toLowerCase(); // Convertir el nombre del producto a minúsculas
+      const nombreProductoLowerCase = nombreProducto.toLowerCase();
       await firestore()
         .collection('Productos')
         .add({
@@ -115,8 +141,11 @@ const RegistroProducto = ({route}) => {
           fechaVencimiento: firestore.Timestamp.fromDate(date),
           descuentoProducto: descuentoProducto,
           ubicacion: ubicacion,
-          nombreProductoLowerCase: nombreProductoLowerCase, // Almacenar el nombre del producto en minúsculas para facilitar la búsqueda
-          userId: userId, // Asociando el producto al userId
+          nombreProductoLowerCase: nombreProductoLowerCase,
+          userId: userId,
+          promoDescription: addPromo
+            ? {descripcionPromocion: promoDescription}
+            : {},
         });
 
       Alert.alert('Información', 'Producto registrado con éxito', [
@@ -125,13 +154,12 @@ const RegistroProducto = ({route}) => {
         },
       ]);
 
-      // Resetear la pila de navegación para ir a VistaPrincipal después de registrar el producto
       navigation.reset({
         index: 0,
         routes: [
           {
             name: 'vistaPrincipal',
-            params: {userId: userId}, // Asegúrate de tener el userId disponible en este scope
+            params: {userId: userId},
           },
         ],
       });
@@ -145,9 +173,11 @@ const RegistroProducto = ({route}) => {
       setPrecioProducto('');
       setCantidadProducto('');
       setDescuentoProducto('');
+      setPromoDescription('');
       setUbicacion('');
     }
   }
+
   //funcion para obtener los permisos para la ubicacion
   const requestLocationPermission = async () => {
     try {
@@ -301,13 +331,22 @@ const RegistroProducto = ({route}) => {
           {ubicacion && <Marker coordinate={ubicacion} />}
         </MapView>
       )}
+      {addPromo && (
+        <TextInput
+          style={styles.input}
+          placeholder="Descripción de la promoción"
+          value={promoDescription}
+          onChangeText={text => setPromoDescription(text)}
+        />
+      )}
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.registrarButton}
-          onPress={subirProducto}>
+          onPress={addPromo ? subirProducto : askForPromotion}>
           <Text style={styles.registrarText}>Registrar</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.salirButton}
           onPress={() => navigation.navigate('vistaPrincipal')}>

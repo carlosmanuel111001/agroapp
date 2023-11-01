@@ -168,6 +168,7 @@ const DetalleCarrito = ({route, navigation}) => {
       cartItems: filteredCart, // Usar filteredCart en lugar de cart
       totalCost: totalCost,
       agricultorInfo: agricultorInfo,
+      agricultorId: agricultorId,
       date: firestore.Timestamp.fromDate(new Date()),
       consumerInfo: {
         consumerId: consumerId,
@@ -212,7 +213,6 @@ const DetalleCarrito = ({route, navigation}) => {
   // Esta función toma los datos del pedido y los envía a la colección "orders" en Firestore.
   const submitOrderToFirestore = async orderData => {
     try {
-      console.log('Enviando pedido a Firestore:', orderData);
       await firestore().collection('orders').add(orderData);
       Alert.alert('Pedido enviado', 'Tu pedido ha sido enviado con éxito');
     } catch (error) {

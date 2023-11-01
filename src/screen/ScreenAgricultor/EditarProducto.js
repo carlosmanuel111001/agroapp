@@ -27,6 +27,7 @@ const EditarProducto = () => {
       path: 'images',
     },
   };
+  const [mostrarInputPromocion, setMostrarInputPromocion] = useState(false);
   // hook use state que contiene el estado del producto.
   const [producto, setProducto] = useState({
     tipoProducto: '',
@@ -93,10 +94,69 @@ const EditarProducto = () => {
   };
 
   const handleActualizar = async () => {
+    // Si el producto no tiene descripción de promoción y no se ha mostrado el input para agregarla
+    if (
+      producto.promoDescription.descripcionPromocion === '' &&
+      !mostrarInputPromocion
+    ) {
+      Alert.alert(
+        'Agregar promoción',
+        '¿Desea agregar una promoción a este producto?',
+        [
+          {
+            text: 'No',
+            onPress: async () => {
+              // Realiza la actualización sin promoción
+              try {
+                const imagenActualizada = producto.imagen;
+
+                await firestore()
+                  .collection('Productos')
+                  .doc(id)
+                  .update({
+                    tipoProducto: producto.tipoProducto,
+                    codigoProducto: producto.codigoProducto,
+                    imagen: imagenActualizada,
+                    nombreProducto: producto.nombreProducto,
+                    precioProducto: producto.precioProducto,
+                    cantidadProducto: producto.cantidadProducto,
+                    fecha: firestore.Timestamp.fromDate(producto.fecha),
+                    descuentoProducto: producto.descuentoProducto,
+                    ubicacion: producto.ubicacion,
+                    // ...otros campos del producto que necesites actualizar
+                  });
+
+                Alert.alert('Información', 'Producto actualizado con éxito', [
+                  {
+                    text: 'OK',
+                    onPress: () => navigation.goBack(),
+                  },
+                ]);
+              } catch (error) {
+                console.error('Error al actualizar el producto: ', error);
+                Alert.alert(
+                  'Error',
+                  'No se pudo actualizar el producto. Por favor, inténtalo de nuevo.',
+                );
+              }
+            },
+          },
+          {
+            text: 'Sí',
+            onPress: () => {
+              // Mostrar el input de promoción
+              setMostrarInputPromocion(true);
+            },
+          },
+        ],
+      );
+      return;
+    }
+
+    // Aquí va el código original que tenías en handleActualizar para actualizar el producto
     try {
-      // Aquí estamos verificando si hay una nueva imagen en imageData; si no, usamos la que ya estaba en el producto.
       const imagenActualizada = producto.imagen;
-      // Actualiza el producto en Firestore utilizando el método update
+
       await firestore()
         .collection('Productos')
         .doc(id)
@@ -110,7 +170,8 @@ const EditarProducto = () => {
           fecha: firestore.Timestamp.fromDate(producto.fecha),
           descuentoProducto: producto.descuentoProducto,
           ubicacion: producto.ubicacion,
-          // ...otros campos del producto
+          promoDescription: producto.promoDescription,
+          // ...otros campos del producto que necesites actualizar
         });
 
       Alert.alert('Información', 'Producto actualizado con éxito', [
@@ -300,6 +361,21 @@ const EditarProducto = () => {
         value={producto.ubicacion}
         onChangeText={text => setProducto({...producto, ubicacion: text})}
       />
+      {mostrarInputPromocion && (
+        <>
+          <Text style={styles.label}>Descripción de la Promoción:</Text>
+          <TextInput
+            style={styles.input}
+            value={producto.promoDescription.descripcionPromocion}
+            onChangeText={text =>
+              setProducto(prevState => ({
+                ...prevState,
+                promoDescription: {descripcionPromocion: text},
+              }))
+            }
+          />
+        </>
+      )}
 
       {/* Puedes agregar aquí más campos si es necesario */}
       <View style={styles.buttonContainer}>

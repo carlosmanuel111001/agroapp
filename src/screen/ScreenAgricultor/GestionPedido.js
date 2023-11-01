@@ -3,8 +3,11 @@ import {TouchableOpacity} from 'react-native';
 import {View, Text, StyleSheet, Image, FlatList} from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import {Picker} from '@react-native-picker/picker';
+import auth from '@react-native-firebase/auth';
 
 const GestionPedido = ({navigation}) => {
+  const currentUserId = auth().currentUser.uid;
+
   const handleBackPress = () => {
     navigation.goBack();
   };
@@ -23,8 +26,9 @@ const GestionPedido = ({navigation}) => {
   useEffect(() => {
     const subscriber = firestore()
       .collection('orders')
+      .where('agricultorId', '==', currentUserId) // Filtrar por agricultorId
+      .limit(5) // Solo obtiene los primeros 5 documentos para verificar
       .onSnapshot(querySnapshot => {
-        //onSnapshot para obtener los pedidos en tiempo real.
         const ordersList = [];
         querySnapshot.forEach(documentSnapshot => {
           ordersList.push({
@@ -32,12 +36,12 @@ const GestionPedido = ({navigation}) => {
             id: documentSnapshot.id,
           });
         });
+
         setOrders(ordersList);
       });
-    // Cancelar la suscripción cuando el componente ya no está en uso
-    return () => subscriber();
-  }, []);
 
+    return () => subscriber();
+  }, [currentUserId]);
   const getRowStyle = estado => {
     switch (estado) {
       case 'aceptado':

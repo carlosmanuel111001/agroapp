@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import {useRoute} from '@react-navigation/native';
 import firebase from '@react-native-firebase/app';
+import {updateOrderStatus} from '../../functions/servicioOrden';
 
 const DetallePedido = ({navigation}) => {
   const route = useRoute();
@@ -44,25 +45,10 @@ const DetallePedido = ({navigation}) => {
     return unsubscribe;
   }, [navigation, route.params.currentData]);
 
-  const updateOrderStatus = async status => {
-    try {
-      await firebase
-        .firestore()
-        .collection('orders')
-        .doc(currentData.id)
-        .update({estado: status});
-      const message =
-        status === 'aceptado' ? 'Pedido Aceptado' : 'Pedido Rechazado';
-      Alert.alert(message, `El pedido ha sido ${status}`, [
-        {text: 'OK', onPress: () => navigation.goBack()},
-      ]);
-    } catch (error) {
-      console.error('Error updating order:', error);
-      Alert.alert(
-        'Error',
-        `Hubo un error al ${status} el pedido. Por favor intenta de nuevo.`,
-      );
-    }
+  //Funcion para actualizar el estado de una Orden
+  const handleUpdateOrderStatus = async status => {
+    // Asegúrate de pasar currentData.id como argumento.
+    await updateOrderStatus(currentData.id, status, navigation);
     setOrderStatus(status);
   };
 
@@ -81,7 +67,7 @@ const DetallePedido = ({navigation}) => {
         </Text>
       ) : (
         <ActionButtons
-          onAccept={() => updateOrderStatus('aceptado')}
+          onAccept={() => handleUpdateOrderStatus('aceptado')}
           onDecline={() => updateOrderStatus('rechazado')}
         />
       )}

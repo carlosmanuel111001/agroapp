@@ -308,8 +308,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#5DDCAE',
   },
   lowerContainer: {
-    flex: 1,
-    backgroundColor: 'white',
+    flex: 1, // Esto asegura que el contenedor tome todo el espacio vertical restante
+  },
+  listContainer: {
+    flex: 1, // Esto también permite que el contenedor de la lista se expanda
   },
   header: {
     flexDirection: 'row',

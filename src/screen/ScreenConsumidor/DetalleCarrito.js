@@ -75,7 +75,6 @@ const DetalleCarrito = ({route, navigation}) => {
 
   // para traer los datos del agricultor
   useEffect(() => {
-    console.log('User ID:', userId);
     const loadAgricultorInfo = async () => {
       try {
         const agricultorRef = firebase
@@ -147,6 +146,15 @@ const DetalleCarrito = ({route, navigation}) => {
     setCart(prevCart => {
       return prevCart.map(producto => {
         if (producto.id === id) {
+          if (producto.cantidadSeleccionada + 1 > producto.cantidadProducto) {
+            // Mostrar alerta si se excede la cantidad disponible
+            Alert.alert(
+              'Cantidad no disponible',
+              `Solo hay ${producto.cantidadProducto} unidades disponibles de ${producto.nombreProducto}`,
+              [{text: 'OK'}],
+            );
+            return producto; // No incrementar la cantidad
+          }
           return {
             ...producto,
             cantidadSeleccionada: producto.cantidadSeleccionada + 1,
@@ -277,6 +285,12 @@ const DetalleCarrito = ({route, navigation}) => {
             <Text style={styles.precioProducto}>
               Precio: ${item.precioProducto}
             </Text>
+            {item.promoDescription &&
+              item.promoDescription.descripcionPromocion && (
+                <Text style={styles.promocionTexto}>
+                  Promoción: {item.promoDescription.descripcionPromocion}
+                </Text>
+              )}
             <Text style={styles.cantidadDisponibleTexto}>
               Cantidad disponible: {item.cantidadProducto}
             </Text>
@@ -499,10 +513,13 @@ const styles = StyleSheet.create({
   },
 
   cantidadDisponibleTexto: {
+    fontSize: 16,
+    color: '#388E3C', // Un color verde oscuro para la disponibilidad
     marginTop: 5,
-    fontSize: 14,
-    color: '#757575', // Color más sutil
+    fontWeight: '500', // Semi-negrita para un poco de énfasis
+    textAlign: 'center', // Centrado para darle importancia
   },
+
   // Estilos para el botón de mensaje
   // Estilos para el nuevo botón y su imagen
   botonAgregarMas: {
@@ -514,6 +531,23 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     tintColor: 'black',
+  },
+  promocionTexto: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#E91E63', // Un color llamativo como rosa fuerte
+    backgroundColor: '#FDEDEC', // Un fondo suave para hacer resaltar el texto
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#E91E63',
+    marginTop: 5,
+    marginBottom: 5,
+    textAlign: 'center', // Centrado para darle más presencia
+    shadowOffset: {width: 1, height: 1},
+    shadowColor: '#E91E63',
+    shadowOpacity: 0.3,
+    elevation: 3, // Sombra en Android
   },
 });
 

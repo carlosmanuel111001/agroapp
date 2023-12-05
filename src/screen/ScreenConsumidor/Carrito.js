@@ -59,14 +59,15 @@ const CarritoDeCompras = ({route, navigation}) => {
         contentContainerStyle={styles.listaContenido}
         data={carrito}
         keyExtractor={item => (item && item.id ? item.id.toString() : '')}
+        // Dentro del renderizado de cada producto en el carrito
         renderItem={({item}) => (
           <TouchableOpacity
             onPress={() =>
               navigation.navigate('DetalleCarrito', {
-                productos: groupedCart[item.agricultorId], // Solo productos del mismo agricultor
                 userId: item.userId,
                 agricultorId: item.agricultorId,
-                consumerId: route.params.consumerId,
+                consumerId: consumerId,
+                // otros parámetros que puedan ser necesarios
               })
             }>
             <View style={styles.itemProductoContainer}>
@@ -75,6 +76,11 @@ const CarritoDeCompras = ({route, navigation}) => {
                 Cantidad: {item.cantidadProducto} - Precio: $
                 {item.precioProducto}
               </Text>
+              {item.descripcionPromocion && (
+                <Text style={styles.promocionTexto}>
+                  Promoción: {item.descripcionPromocion}
+                </Text>
+              )}
             </View>
           </TouchableOpacity>
         )}
@@ -139,6 +145,23 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontSize: 14,
     color: '#555', // Cambiado a un tono de gris más oscuro (#555)
+  },
+  promocionTexto: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#E91E63', // Un color llamativo como rosa fuerte
+    backgroundColor: '#FDEDEC', // Un fondo suave para hacer resaltar el texto
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#E91E63',
+    marginTop: 5,
+    marginBottom: 5,
+    textAlign: 'center', // Centrado para darle más presencia
+    shadowOffset: {width: 1, height: 1},
+    shadowColor: '#E91E63',
+    shadowOpacity: 0.3,
+    elevation: 3, // Sombra en Android
   },
 });
 

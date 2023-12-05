@@ -31,12 +31,51 @@ const DetallePedido = ({navigation}) => {
   }, [currentData]);
 
   const handleUpdateOrderStatus = async status => {
-    await firebase
-      .firestore()
-      .collection('orders')
-      .doc(currentData.id)
-      .update({estado: status});
-    setOrderStatus(status);
+    if (status === 'aceptado') {
+      for (const item of currentData.cartItems) {
+        const productoId = item.id; // Asegúrate de que este ID es correcto
+        const cantidadSeleccionada = item.cantidadSeleccionada;
+
+        try {
+          const productoRef = firebase
+            .firestore()
+            .collection('Productos')
+            .doc(productoId);
+          const productoSnapshot = await productoRef.get();
+
+          if (productoSnapshot.exists) {
+            const productoData = productoSnapshot.data();
+            const nuevaCantidad =
+              parseInt(productoData.cantidadProducto) - cantidadSeleccionada;
+
+            if (nuevaCantidad >= 0) {
+              await productoRef.update({
+                cantidadProducto: nuevaCantidad.toString(),
+              });
+            } else {
+              Alert.alert(
+                'Error',
+                'La cantidad seleccionada supera la cantidad disponible.',
+              );
+              return;
+            }
+          } else {
+            console.error(
+              `Producto con ID ${productoId} no encontrado en Firestore`,
+            );
+          }
+        } catch (error) {
+          console.error('Error al actualizar el producto:', error);
+        }
+      }
+
+      await firebase
+        .firestore()
+        .collection('orders')
+        .doc(currentData.id)
+        .update({estado: status});
+      setOrderStatus(status);
+    }
   };
 
   const handleRejectOrder = () => {

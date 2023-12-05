@@ -49,12 +49,6 @@ const DescripcionProducto = ({route, navigation}) => {
 
     return `${day}-${month}-${year}`;
   }
-  const handleBuyPress = () => {
-    navigation.navigate('Pagar', {
-      productName: selectedProduct.name,
-      productPrice: selectedProduct.price,
-    });
-  };
   const chatId =
     agricultorId < consumerId
       ? agricultorId + consumerId
@@ -90,6 +84,8 @@ const DescripcionProducto = ({route, navigation}) => {
       cantidadSeleccionada: 1,
       productPrice: parseFloat(selectedProduct.productPrice),
       cantidadProducto: parseFloat(selectedProduct.cantidadProducto),
+      descripcionPromocion:
+        selectedProduct.promoDescription?.descripcionPromocion || null,
     };
 
     setCart(prevCart => [...prevCart, productToAdd]);

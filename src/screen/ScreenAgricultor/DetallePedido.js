@@ -9,16 +9,13 @@ import {
 } from 'react-native';
 import {useRoute} from '@react-navigation/native';
 import firebase from '@react-native-firebase/app';
-import {updateOrderStatus} from '../../functions/servicioOrden';
 
 const DetallePedido = ({navigation}) => {
   const route = useRoute();
   const currentData = route.params?.currentData;
-  const [docData, setDocData] = useState(null);
-  const [consumerName, setConsumerName] = useState('');
   const [orderStatus, setOrderStatus] = useState(null);
+
   useEffect(() => {
-    // Obtener el estado del pedido de la base de datos y actualizar el estado
     if (currentData?.id) {
       firebase
         .firestore()
@@ -33,30 +30,60 @@ const DetallePedido = ({navigation}) => {
     }
   }, [currentData]);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      const orderData = route.params?.currentData;
-
-      if (orderData) {
-        setConsumerName(orderData.consumerInfo.consumerName);
-      }
-    });
-
-    return unsubscribe;
-  }, [navigation, route.params.currentData]);
-
-  //Funcion para actualizar el estado de una Orden
   const handleUpdateOrderStatus = async status => {
-    // Asegúrate de pasar currentData.id como argumento.
-    await updateOrderStatus(currentData.id, status, navigation);
+    await firebase
+      .firestore()
+      .collection('orders')
+      .doc(currentData.id)
+      .update({estado: status});
     setOrderStatus(status);
+  };
+
+  const handleRejectOrder = () => {
+    Alert.alert(
+      'Rechazar Pedido',
+      'Elige una razón para rechazar el pedido:',
+      [
+        {
+          text: 'Producto Agotado',
+          onPress: () => updateOrderStatusWithReason('Producto Agotado'),
+        },
+        {
+          text: 'Demasiados pedidos',
+          onPress: () => updateOrderStatusWithReason('Demasiados pedidos'),
+        },
+        {
+          text: 'Producto no disponible',
+          onPress: () => updateOrderStatusWithReason('Producto no disponible'),
+        },
+        {text: 'Cancelar', style: 'cancel'},
+      ],
+      {cancelable: true},
+    );
+  };
+
+  const updateOrderStatusWithReason = async reason => {
+    try {
+      await firebase
+        .firestore()
+        .collection('orders')
+        .doc(currentData.id)
+        .update({
+          estado: 'rechazado',
+          razonRechazo: reason,
+        });
+
+      setOrderStatus('rechazado');
+    } catch (error) {
+      console.error('Error al actualizar el estado del pedido:', error);
+    }
   };
 
   return (
     <View style={styles.container}>
       <Header navigation={navigation} orderId={currentData?.id} />
       <ClientData
-        consumerName={consumerName}
+        consumerName={currentData?.consumerInfo?.consumerName}
         clientInfo={currentData?.agricultorInfo}
         orderDate={currentData?.date}
       />
@@ -68,7 +95,7 @@ const DetallePedido = ({navigation}) => {
       ) : (
         <ActionButtons
           onAccept={() => handleUpdateOrderStatus('aceptado')}
-          onDecline={() => updateOrderStatus('rechazado')}
+          onDecline={handleRejectOrder}
         />
       )}
     </View>

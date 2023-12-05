@@ -94,6 +94,8 @@ const DetallePedido = ({route}) => {
             <Text style={styles.titleRejected}>Lo sentimos...</Text>
             <Text style={styles.subTitle}>
               Tu pedido ha sido rechazado por {pedido.agricultorInfo.nombre}
+              {'\n'}
+              Razón del rechazo: {pedido.razonRechazo || 'No especificada'}
             </Text>
             <Button
               title="Volver a la tienda"

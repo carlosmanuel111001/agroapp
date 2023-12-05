@@ -30,7 +30,6 @@ const ListaAgricultores = ({navigation}) => {
         setFilteredAgricultores(data);
       });
 
-    // Detach listener on cleanup
     return () => database().ref('/agricultores').off('value', onValueChange);
   }, []);
 
@@ -45,7 +44,14 @@ const ListaAgricultores = ({navigation}) => {
   }, [agricultores, searchQuery]);
 
   const handleAgricultorPress = agricultorId => {
-    navigation.navigate('DetallesAgricultor', {agricultorId});
+    navigation.navigate('ListaProductos', {agricultorId});
+  };
+
+  const renderImage = imagen => {
+    if (imagen) {
+      return <Image source={{uri: imagen}} style={styles.image} />;
+    }
+    return null;
   };
 
   return (
@@ -72,10 +78,7 @@ const ListaAgricultores = ({navigation}) => {
           <TouchableOpacity onPress={() => handleAgricultorPress(item.key)}>
             <Card style={styles.card}>
               <Card.Content style={styles.cardContent}>
-                <Image
-                  source={{uri: item.imagen || undefined}}
-                  style={styles.image}
-                />
+                {renderImage(item.imagen)}
                 <View style={styles.textContainer}>
                   <Title style={styles.title}>
                     {item.nombre} {item.apellidos}
@@ -103,7 +106,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   appbarTitle: {
-    alignSelf: 'center', // Centra el título en la AppBar
+    alignSelf: 'center',
   },
   searchInput: {
     fontSize: 18,

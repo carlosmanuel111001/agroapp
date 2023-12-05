@@ -3,7 +3,7 @@ import {View, FlatList, StyleSheet, Alert, Image} from 'react-native';
 import {Appbar, Card, Title, Paragraph, Button} from 'react-native-paper';
 import firestore from '@react-native-firebase/firestore';
 
-const ListaProductos = ({route}) => {
+const ListaProductos = ({route, navigation}) => {
   const agricultorId = route.params.agricultorId; // Asumiendo que pasas el ID del agricultor a través de la navegación.
 
   const [productos, setProductos] = useState([]);
@@ -24,29 +24,58 @@ const ListaProductos = ({route}) => {
   }, [agricultorId]);
 
   const handleEliminarAgricultor = async () => {
-    try {
-      // 1. Eliminar todos los productos asociados al agricultor.
-      const productosRef = firestore().collection('Productos');
-      const productosSnapshot = await productosRef
-        .where('userId', '==', agricultorId)
-        .get();
+    Alert.alert(
+      'Confirmar eliminación',
+      '¿Estás seguro de que quieres eliminar este agricultor y todos sus productos?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Eliminar',
+          onPress: async () => {
+            try {
+              // Iniciar una transacción de Firestore
+              const batch = firestore().batch();
 
-      const batch = firestore().batch();
-      productosSnapshot.forEach(doc => {
-        batch.delete(productosRef.doc(doc.id));
-      });
-      await batch.commit();
+              // Eliminar todos los productos asociados al agricultor
+              const productosRef = firestore().collection('Productos');
+              const productosSnapshot = await productosRef
+                .where('userId', '==', agricultorId)
+                .get();
 
-      // 2. Eliminar el agricultor.
-      await firestore().collection('Agricultores').doc(agricultorId).delete();
+              productosSnapshot.forEach(doc => {
+                batch.delete(productosRef.doc(doc.id));
+              });
 
-      // Notificar éxito.
-      console.log('Agricultor y sus productos eliminados con éxito.');
-    } catch (error) {
-      console.error('Error eliminando agricultor y sus productos: ', error);
-    }
+              // Eliminar el agricultor
+              const agricultorRef = firestore()
+                .collection('Agricultores')
+                .doc(agricultorId);
+              batch.delete(agricultorRef);
+
+              // Confirmar la transacción
+              await batch.commit();
+
+              // Regresar a la pantalla anterior
+              navigation.goBack();
+            } catch (error) {
+              console.error(
+                'Error al eliminar el agricultor y sus productos:',
+                error,
+              );
+              Alert.alert(
+                'Error',
+                'No se pudo eliminar el agricultor y sus productos.',
+              );
+            }
+          },
+        },
+      ],
+      {cancelable: false},
+    );
   };
-
   const confirmarEliminacion = () => {
     Alert.alert(
       'Eliminar Agricultor',

@@ -55,7 +55,7 @@ const VistaOpcionesAgricultor = () => {
     navigation.navigate('ListaCalificaciones');
   };
   const handleHistorialVentasPress = () => {
-    navigation.navigate('HistorialVentas');
+    navigation.navigate('HistorialDeVentas');
   };
 
   return (

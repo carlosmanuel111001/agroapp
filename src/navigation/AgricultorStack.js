@@ -14,6 +14,8 @@ import ListaCalificaciones from '../screen/ScreenAgricultor/ListaCalificaciones'
 import CalificacionComentario from '../screen/ScreenAgricultor/CalificacionComentario';
 import Mensaje from '../screen/ScreenAgricultor/Mensaje';
 import DetalleMensaje from '../screen/ScreenAgricultor/DetalleMensaje';
+import HistorialDeVentas from '../screen/ScreenAgricultor/HistorialDeVentas';
+import DetalleVenta from '../screen/ScreenAgricultor/DetalleVenta';
 
 const AgricultorStack = createStackNavigator();
 
@@ -82,6 +84,11 @@ const AgricultorStackNavigator = () => {
           name="DetalleMensaje"
           component={DetalleMensaje}
         />
+        <AgricultorStack.Screen
+          name="HistorialDeVentas"
+          component={HistorialDeVentas}
+        />
+        <AgricultorStack.Screen name="DetalleVenta" component={DetalleVenta} />
       </AgricultorStack.Navigator>
     );
   } else {
